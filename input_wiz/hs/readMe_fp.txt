@@ -1,0 +1,27 @@
+Read me for Hyperspectral value data files
+
+File name
+grassland_harvestDate_fp_spectralmean
+Ex: g4_20180510_fp
+
+field_id = Grassland field id
+
+fp_id = Field subplot id (This changes with harvest number)
+			1XX for G1 (101 - 120)
+			2XX for G2 (201 - 220)
+			3XX for G3 (301 - 320, 321 - 340)
+			4XX for G4 (401 - 420, 421 - 440, 441 - 460)
+
+harvest = Harvest number
+
+PAN = Mean value of panchromatic band
+
+WV_XXX = Mean value of the XXX th wavelength band
+
+Wavelength band values (138)
+ [1] 450 454 458 462 466 470 474 478 482 486 490 494 498 502 506 510 514 518 522 526 530 534 538
+ [24] 542 546 550 554 558 562 566 570 574 578 582 586 590 594 598 602 606 610 614 618 622 626 630
+ [47] 634 638 642 646 650 654 658 662 666 670 674 678 682 686 690 694 698 702 706 710 714 718 722
+ [70] 726 730 734 738 742 746 750 754 758 762 766 770 774 778 782 786 790 794 798 802 806 810 814
+ [93] 818 822 826 830 834 838 842 846 850 854 858 862 866 870 874 878 882 886 890 894 898 902 906
+[116] 910 914 918 922 926 930 934 938 942 946 950 954 958 962 966 970 974 978 982 986 990 994 998

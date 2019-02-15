@@ -1,0 +1,361 @@
+---
+title: "Summary of the data - Rhön"
+author: "Jayan Wijesingha"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  pdf_document:
+    number_sections: true
+    latex_engine: xelatex
+header-includes:
+  - \usepackage{fontspec}
+  - \setmainfont{Lucida Bright}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(digits = 3)
+
+library(data.table)
+library(dplyr)
+library(hsdar)
+library(ggplot2)
+library(caret)
+library(purrr)
+library(readr)
+library(ppls)
+library(tibble)
+
+windowsFonts(Helvetica=windowsFont("Helvetica-Regular"))
+```
+
+# Reading and visualise trait data
+
+## Biomass data
+
+```{r bm_data, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
+
+bm_list <- dir(path = "./input_dsb/bm_cn_adf/", pattern = "*.csv", full.names = TRUE)
+
+bm_cn_adf_data <- bm_list %>%
+  map(read_csv) %>%    # read in all the files individually, using
+  # the function read_csv() from the readr package
+  reduce(rbind)     # reduce with rbind into one dataframe
+
+names(bm_cn_adf_data) <- c(names(bm_cn_adf_data)[1:9], "c", "n", "adf")
+
+bm_cn_adf_data$logdb <- log(bm_cn_adf_data$db) # Standardise dry biomass with log transformation
+bm_cn_adf_data$cn_ratio <- bm_cn_adf_data$c/bm_cn_adf_data$n
+bm_cn_adf_data <- bm_cn_adf_data[c(1:9, 13, 11, 10, 14, 12)]
+bm_cn_adf_data$harvest <- factor(bm_cn_adf_data$harvest, labels = c("H1", "H2", "H3"))
+
+### Histogram plot for dry biomass data
+ggplot(bm_cn_adf_data, aes (x = db, fill= field_id)) + 
+  geom_density(alpha = 0.4) +
+  facet_grid(. ~ harvest) +
+  ggthemes::theme_stata(base_size = 12, base_family = "Helvetica") +
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+                    name = "Grassland ID", 
+                    labels = c("BG", "BGL", "GH", "GHL")) +
+  labs(x = "Dry biomass (kg/m²)",
+       y = "Density",
+       caption = "Dry biomass data (Rhön)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+
+### Histogram plot for log transformed dry biomass data
+ggplot(bm_cn_adf_data, aes (x = logdb, fill= field_id)) + 
+  geom_density(alpha = 0.4) +
+  facet_grid(. ~ harvest) +
+  ggthemes::theme_stata(base_size = 12, base_family = "Helvetica") +
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+                    name = "Grassland ID", 
+                    labels = c("BG", "BGL", "GH", "GHL")) +
+  labs(x = "Log transformed dry biomass (kg/m²)",
+       y = "Density",
+       caption = "Log transformed dry biomass data (Rhön)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+## Nitrogen (N) and Carbon (C) data
+
+```{r cn_data, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
+
+### Histogram plot for N concentration data
+ggplot(bm_cn_adf_data, aes (x = n, fill= field_id)) + 
+  geom_density(alpha = 0.4) +
+  facet_grid(. ~ harvest) +
+  ggthemes::theme_stata(base_size = 12, base_family = "Helvetica") +
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+                    name = "Grassland ID", 
+                    labels = c("BG", "BGL", "GH", "GHL")) +
+  labs(x = "N (%) per dry matter",
+       y = "Density",
+       caption = "Nitrogen (N) concentration data (Rhön)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+
+### Histogram plot for C concentration data
+ggplot(bm_cn_adf_data, aes (x = c, fill= field_id)) + 
+  geom_density(alpha = 0.4) +
+  facet_grid(. ~ harvest) +
+  ggthemes::theme_stata(base_size = 12, base_family = "Helvetica") +
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+                    name = "Grassland ID", 
+                    labels = c("BG", "BGL", "GH", "GHL")) +
+  labs(x = "C (%) per dry matter",
+       y = "Density",
+       caption = "Carbon (C) concentration data (Rhön)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+## ADF data
+
+```{r adf_data, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
+
+### Histogram plot for ADF concentration data
+ggplot(bm_cn_adf_data, aes (x = adf, fill= field_id)) + 
+  geom_density(alpha = 0.4) +
+  facet_grid(. ~ harvest) +
+  ggthemes::theme_stata(base_size = 12, base_family = "Helvetica") +
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+                    name = "Grassland ID", 
+                    labels = c("BG", "BGL", "GH", "GHL")) +
+  labs(x = "ADF (%) per dry matter",
+       y = "Density",
+       caption = "Acid detergent fiber (ADF) concentration data (Rhön)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+## ADF data
+
+```{r n_vs_adf_data, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
+
+ggplot(bm_cn_adf_data, 
+       aes (x = n, y = adf)) + 
+  geom_point(aes(col = field_id), alpha = 0.8, size = 5, shape = 20) +
+  stat_smooth(method=lm, se = FALSE, linetype = "twodash") + 
+  #facet_grid(. ~ harvest) + 
+  coord_fixed(ratio = 0.15) +
+  ggthemes::theme_stata(base_size = 12, base_family = "Helvetica") +
+  scale_color_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+                     name = "Grassland ID", 
+                     labels = c("BG", "BGL", "GH", "GHL")) +
+  labs(x = "N (%) per dry matter",
+       y = "ADF (%) per dry matter",
+       caption = "Nitrogen (N) vs Acid detergent fiber (ADF) data (WIZ)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+```{r hs_data, include=FALSE, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
+## Hyperspectral data
+
+hs_list <- dir(path = "./input_dsb/hs/", pattern = "*.csv", full.names = TRUE)
+
+hs_read <- hs_list %>%
+  map(read_csv) %>%    
+  reduce(rbind) 
+
+### Remove unwanted wavelength bands (450 - 478 nm & 902 - 998 nm)
+hs_data <- hs_read[-c(3, 6:13, 132:143)]
+hs_data$harvest <- factor(hs_data$harvest, labels = c("H1", "H2", "H3"))
+# 2. Merging and removing NAs
+
+
+## all three tables
+
+hs_all_df <- merge(hs_data, bm_cn_adf_data) %>% tidyr::drop_na()
+hs_all_df$field_id <- factor(hs_all_df$field_id)
+hs_all_df$harvest <- factor(hs_all_df$harvest)
+```
+
+# Hyperspectral data
+
+```{r speclib_data, echo=FALSE, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%", comment=""}
+
+wv <- seq(482, 950, 4)
+spec_df <- hs_all_df[c(5:122)] # Select only spectral data
+spec_org_mat <- as.matrix(spec_df)/10000 # Convert df to a matrix
+spec_nrm_mat <- t(apply(spec_org_mat, 1, normalize.vector)) # Normalise each row
+
+
+## Speclib data for original reflectance
+spec_org_data <- speclib(spec_org_mat, wv)
+SI(spec_org_data) <- hs_all_df[c(1:4, 123:133)]
+#spec_org_data
+
+## Speclib data for normalised reflectance
+spec_nrm_data <- speclib(spec_nrm_mat, wv)
+SI(spec_nrm_data) <- hs_all_df[c(1:4, 123:133)]
+spec_nrm_data
+
+### Convert normalised reflectance back to a dataframe
+source("./spc_2df.R")
+hs_all_nrm_df <- spc_2df(spec_nrm_data)
+hs_all_nrm_df <- hs_all_nrm_df[c(1:4, 16:133, 5:15)] # arrange columns
+names(hs_all_nrm_df) <- names(hs_all_df)
+
+
+
+## Plotting mean spectral curves for Harvest level and grassland level
+
+### First Harvest
+par(mfrow=c(1,2))
+
+plot(subset(spec_org_data, field_id == "BG" & harvest == "H1"), FUN = "mean", col = "#3CA437", 
+     main = "Original Reflectance - H1", ylim=c(0,1.5))
+plot(subset(spec_org_data, field_id == "BGL" & harvest == "H1"), FUN = "mean", col = "#B1740F", new = FALSE)
+plot(subset(spec_org_data, field_id == "GH" & harvest == "H1"), FUN = "mean", col = "#D5006A", new = FALSE)
+plot(subset(spec_org_data, field_id == "GHL" & harvest == "H1"), FUN = "mean", col = "#08585A", new = FALSE)
+legend("topleft", legend = c("BG", "BGL", "GH", "GHL"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+
+
+plot(subset(spec_nrm_data, field_id == "BG" & harvest == "H1"), FUN = "mean", col = "#3CA437", 
+     main = "Normalised Reflectance - H1", ylim=c(0,0.2))
+plot(subset(spec_nrm_data, field_id == "BGL" & harvest == "H1"), FUN = "mean", col = "#B1740F", new = FALSE)
+plot(subset(spec_nrm_data, field_id == "GH" & harvest == "H1"), FUN = "mean", col = "#D5006A", new = FALSE)
+plot(subset(spec_nrm_data, field_id == "GHL" & harvest == "H1"), FUN = "mean", col = "#08585A", new = FALSE)
+legend("topleft", legend = c("BG", "BGL", "GH", "GHL"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+
+
+### Second harvest
+
+plot(subset(spec_org_data, field_id == "BG" & harvest == "H2"), FUN = "mean", col = "#3CA437", 
+     main = "Original Reflectance - H2", ylim=c(0,1.5))
+plot(subset(spec_org_data, field_id == "BGL" & harvest == "H2"), FUN = "mean", col = "#B1740F", new = FALSE)
+plot(subset(spec_org_data, field_id == "GH" & harvest == "H2"), FUN = "mean", col = "#D5006A", new = FALSE)
+plot(subset(spec_org_data, field_id == "GHL" & harvest == "H2"), FUN = "mean", col = "#08585A", new = FALSE)
+legend("topleft", legend = c("BG", "BGL", "GH", "GHL"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+
+
+plot(subset(spec_nrm_data, field_id == "BG" & harvest == "H2"), FUN = "mean", col = "#3CA437", 
+     main = "Normalised Reflectance - H2", ylim=c(0,0.2))
+plot(subset(spec_nrm_data, field_id == "BGL" & harvest == "H2"), FUN = "mean", col = "#B1740F", new = FALSE)
+plot(subset(spec_nrm_data, field_id == "GH" & harvest == "H2"), FUN = "mean", col = "#D5006A", new = FALSE)
+plot(subset(spec_nrm_data, field_id == "GHL" & harvest == "H2"), FUN = "mean", col = "#08585A", new = FALSE)
+legend("topleft", legend = c("BG", "BGL", "GH", "GHL"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+
+
+### Third harvest
+
+plot(subset(spec_org_data, field_id == "BG" & harvest == "H3"), FUN = "mean", col = "#3CA437", 
+     main = "Original Reflectance - H3", ylim=c(0,1.5))
+plot(subset(spec_org_data, field_id == "BGL" & harvest == "H3"), FUN = "mean", col = "#B1740F", new = FALSE)
+plot(subset(spec_org_data, field_id == "GH" & harvest == "H3"), FUN = "mean", col = "#D5006A", new = FALSE)
+plot(subset(spec_org_data, field_id == "GHL" & harvest == "H3"), FUN = "mean", col = "#08585A", new = FALSE)
+legend("topleft", legend = c("BG", "BGL", "GH", "GHL"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+
+
+plot(subset(spec_nrm_data, field_id == "BG" & harvest == "H3"), FUN = "mean", col = "#3CA437", 
+     main = "Normalised Reflectance - H3", ylim=c(0,0.2))
+plot(subset(spec_nrm_data, field_id == "BGL" & harvest == "H3"), FUN = "mean", col = "#B1740F", new = FALSE)
+plot(subset(spec_nrm_data, field_id == "GH" & harvest == "H3"), FUN = "mean", col = "#D5006A", new = FALSE)
+plot(subset(spec_nrm_data, field_id == "GHL" & harvest == "H3"), FUN = "mean", col = "#08585A", new = FALSE)
+legend("topleft", legend = c("BG", "BGL", "GH", "GHL"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+
+par(mfrow=c(1,1))
+
+```
+
+# Correlation with single bands
+
+```{r cor_analysis, echo=FALSE, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
+
+## Correlation between reflectance vs N
+cor_n_df <- hs_all_nrm_df[c(5:122, 130)] %>%
+  corrr::correlate() %>% 
+  corrr::focus(n)
+
+cor_n_df$wv <- wv
+
+
+## Correlation between reflectance vs ADF
+cor_adf_df <- hs_all_nrm_df[c(5:122, 133)] %>%
+  corrr::correlate() %>% 
+  corrr::focus(adf)
+
+cor_adf_df$wv <- wv
+
+
+cor_df <- merge(cor_n_df[-1], cor_adf_df[-1])
+cor_df_melt <- reshape2::melt(cor_df, id = "wv")
+names(cor_df_melt) <- c("Wavelength", "Quality", "Correlation")
+
+ggplot(cor_df_melt, aes(x = Wavelength, y = Correlation, group = Quality)) +
+  geom_line(aes(color = Quality))+
+  geom_point(aes(color = Quality)) +
+  ggthemes::theme_stata(base_size = 12, base_family = "Helvetica") +
+  scale_color_manual(values = c("#E48F1B", "#42858C"),
+                     name = "Forage quality parameter", 
+                     labels = c("Nitrogen (%)", "ADF (%)")) +
+  labs(x = "Wavelength (nm)",
+       y = "Correlation coefficient",
+       caption = "Correlation coefficient with normalised spectral reflectance vs N (%) and ADF (%) (Rhön)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+
+```
+
+# Linear regression models with normalised difference spectral indices (NDSI)
+
+```{r ndsi, echo=FALSE, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
+
+## Create NDSI for all possible bands
+
+nri_data <- nri(spec_nrm_data, recursive = TRUE)
+#nri_data
+
+## Linear regression with NDSI vs N%
+
+load("./lm_x_nri_dsb.RData")
+#lm_n_nri <- lm.nri(nri_data ~ n, preddata = spec_nrm_data)
+plot(lm_n_nri, coefficient = "r.squared", main = "NDSI vs N %",
+     constraint = "p.value<0.05", colspace = "rgb", col = jcolors::jcolors("pal12"))
+lines(c(480,950),c(480,950))
+
+## Linear regression with NDSI vs ADF%
+
+#lm_adf_nri <- lm.nri(nri_data ~ adf, preddata = spec_nrm_data)
+plot(lm_adf_nri, coefficient = "r.squared", main = "NDSI vs ADF %",
+     constraint = "p.value<0.05", colspace = "rgb", col = jcolors::jcolors("pal12"))
+lines(c(480,950),c(480,950))
+
+```

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PLSR for N and ADF with all data</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="generator" content="pandoc" />
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <base target="_blank">
+
+  <script type="text/javascript">
+    var SLIDE_CONFIG = {
+      // Slide settings
+      settings: {
+                title: 'PLSR for N and ADF with all data',
+                        useBuilds: true,
+        usePrettify: true,
+        enableSlideAreas: true,
+        enableTouch: true,
+                      },
+
+      // Author information
+      presenters: [
+            {
+        name:  'Jayan Wijesingha' ,
+        company: '',
+        gplus: '',
+        twitter: '',
+        www: '',
+        github: ''
+      },
+            ]
+    };
+  </script>
+
+  <link href="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/fonts/fonts.css" rel="stylesheet" />
+  <link href="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/theme/css/default.css" rel="stylesheet" />
+  <link href="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/theme/css/phone.css" rel="stylesheet" />
+  <script src="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/js/modernizr.custom.45394.js"></script>
+  <script src="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/js/prettify/prettify.js"></script>
+  <script src="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/js/prettify/lang-r.js"></script>
+  <script src="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/js/prettify/lang-yaml.js"></script>
+  <script src="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/js/hammer.js"></script>
+  <script src="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/js/slide-controller.js"></script>
+  <script src="plsr_for_ncadf_with_all_slides_files/ioslides-13.5.1/js/slide-deck.js"></script>
+
+  <style type="text/css">
+
+    b, strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    slides > slide {
+      -webkit-transition: all 0.4s ease-in-out;
+      -moz-transition: all 0.4s ease-in-out;
+      -o-transition: all 0.4s ease-in-out;
+      transition: all 0.4s ease-in-out;
+    }
+
+    .auto-fadein {
+      -webkit-transition: opacity 0.6s ease-in;
+      -webkit-transition-delay: 0.4s;
+      -moz-transition: opacity 0.6s ease-in 0.4s;
+      -o-transition: opacity 0.6s ease-in 0.4s;
+      transition: opacity 0.6s ease-in 0.4s;
+      opacity: 0;
+    }
+
+  </style>
+
+  <link rel="stylesheet" href="iso_css.css" type="text/css" />
+
+</head>
+
+<body style="opacity: 0">
+
+<slides>
+
+  <slide class="title-slide segue nobackground">
+        <!-- The content of this hgroup is replaced programmatically through the slide_config.json. -->
+    <hgroup class="auto-fadein">
+      <h1 data-config-title><!-- populated from slide_config.json --></h1>
+      <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
+      <p data-config-presenter><!-- populated from slide_config.json --></p>
+            <p style="margin-top: 6px; margin-left: -2px;">15 February, 2019</p>
+          </hgroup>
+  </slide>
+
+<slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Splitting Data for train and test</h2></hgroup><article  id="splitting-data-for-train-and-test">
+
+<pre >  
+   g1  g2  g3  g4  BG BGL  GH GHL 
+   20  19  35  60  15  15  15  15</pre>
+
+<pre >  
+   g1  g2  g3  g4  BG BGL  GH GHL 
+   16  15  28  48  12  12  12  12</pre>
+
+<pre >  
+   g1  g2  g3  g4  BG BGL  GH GHL 
+    4   4   7  12   3   3   3   3</pre>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Model calibration for N (training)</h2></hgroup><article  id="model-calibration-for-n-training">
+
+</article></slide><slide class=""><hgroup><h2>PLSR</h2></hgroup><article  id="plsr">
+
+<p><img src="plsr_for_ncadf_with_all_slides_files/figure-html/calibration_out_n-1.png" width="60%" style="display: block; margin: auto;" /><img src="plsr_for_ncadf_with_all_slides_files/figure-html/calibration_out_n-2.png" width="60%" style="display: block; margin: auto;" /></p>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Model calibration for ADF (training)</h2></hgroup><article  id="model-calibration-for-adf-training">
+
+</article></slide><slide class=""><hgroup><h2>PLSR</h2></hgroup><article  id="plsr-1">
+
+<p><img src="plsr_for_ncadf_with_all_slides_files/figure-html/calibration_out_adf-1.png" width="60%" style="display: block; margin: auto;" /><img src="plsr_for_ncadf_with_all_slides_files/figure-html/calibration_out_adf-2.png" width="60%" style="display: block; margin: auto;" /></p>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Model calibration - Comparision (N vs ADF)</h2></hgroup><article  id="model-calibration---comparision-n-vs-adf">
+
+<p><img src="plsr_for_ncadf_with_all_slides_files/figure-html/calibration_out_nadf-1.png" width="65%" style="display: block; margin: auto;" /></p>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Model validation for N (testing)</h2></hgroup><article  id="model-validation-for-n-testing">
+
+<pre >       RMSE  Rsquared       MAE 
+  0.4734816 0.4530288 0.3761371</pre>
+
+<p><img src="plsr_for_ncadf_with_all_slides_files/figure-html/validation_out_n-1.png" width="60%" style="display: block; margin: auto;" /></p>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Model validation for ADF (testing)</h2></hgroup><article  id="model-validation-for-adf-testing">
+
+<pre >       RMSE  Rsquared       MAE 
+  2.7342906 0.5140647 2.2754381</pre>
+
+<p><img src="plsr_for_ncadf_with_all_slides_files/figure-html/validation_out_adf-1.png" width="60%" style="display: block; margin: auto;" /></p></article></slide>
+
+
+  <slide class="backdrop"></slide>
+
+</slides>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+<!-- map slide visiblity events into shiny -->
+<script>
+  (function() {
+    if (window.jQuery) {
+       window.jQuery(document).on('slideleave', function(e) {
+         window.jQuery(e.target).trigger('hidden');
+      });
+       window.jQuery(document).on('slideenter', function(e) {
+         window.jQuery(e.target).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>
