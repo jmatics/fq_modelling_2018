@@ -65,13 +65,22 @@ seed_vec <- c(1, 777, 1985, 37213, 104895)
 for (k in 1:length(seed_vec)){
   set.seed(seed_vec[k])
   
-  split_sample <- groupdata2::partition(all_df, p = 0.75, cat_col = "field_id", 
-                                      num_col = NULL, id_col = NULL, 
-                                      id_aggregation_fn = sum, 
-                                      force_equal = FALSE, list_out = F)
-  train_list[[k]] <- split_sample %>% dplyr::filter(.partitions == 1) %>% data.frame()
-  test_list[[k]] <- split_sample %>% dplyr::filter(.partitions == 2) %>% data.frame()
-  test_list[[k]]$seed <- rep(seed_vec[k], dim(test_list[[k]])[1])
+  split_sample <-
+    groupdata2::partition(
+    all_df,
+    p = 0.75,
+    cat_col = "field_id",
+    num_col = NULL,
+    id_col = NULL,
+    id_aggregation_fn = sum,
+    force_equal = FALSE,
+    list_out = F
+    )
+    train_list[[k]] <-
+    split_sample %>% dplyr::filter(.partitions == 1) %>% data.frame()
+    test_list[[k]] <-
+    split_sample %>% dplyr::filter(.partitions == 2) %>% data.frame()
+    test_list[[k]]$seed <- rep(seed_vec[k], dim(test_list[[k]])[1])
 }
 ```
 
