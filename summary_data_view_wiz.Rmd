@@ -157,7 +157,7 @@ ggplot(adf_data, aes (x = doy, y = adf, fill = field_id)) +
                     labels = c("G1a", "G1b", "G2", "G3")) +
   labs(x = "Julian date (DOY)",
        y = "ADF (%) per dry matter",
-       caption = "Nitrogen (N) concentration data (WIZ)") +
+       caption = "Acid detergent fiber (ADF) concentration data (WIZ)") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),

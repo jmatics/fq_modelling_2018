@@ -32,36 +32,20 @@ bm_data <- bm_list %>%
 
 
 bm_data$logdb <- log(bm_data$db) # Standardise dry biomass with log transformation
+bm_data$doy <- factor(bm_data$doy)
 
 ### Histogram plot for dry biomass data
-ggplot(bm_data, aes (x = db, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
+ggplot(bm_data, aes (x = doy, y = db, fill = field_id)) + 
+  geom_boxplot(alpha = 0.8) +
+  #facet_grid(. ~ field_id, 
+  #labeller = labeller(field_id = c(g1 = "G1", g2 = "G2", g3 = "G3", g4 = "G4"))) +
   theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
                     name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "Dry biomass (kg/m²)",
-       y = "Density",
+                    labels = c("G1a", "G1b", "G2", "G3")) +
+  labs(y = "Dry biomass (kg/m²)",
+       x = "Julian date (DOY)",
        caption = "Dry biomass data (WIZ)") +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 14),
-    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
-    legend.position = "bottom"
-  )
-
-### Histogram plot for log transformed dry biomass data
-ggplot(bm_data, aes (x = logdb, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
-  theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
-                    name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "Log transformed dry biomass (kg/m²)",
-       y = "Density",
-       caption = "Log transformed dry biomass data (WIZ)") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -72,62 +56,44 @@ ggplot(bm_data, aes (x = logdb, fill= field_id)) +
 ## Nitrogen data
 
 cn_data <- read.csv("./input_wiz/cn/grassland_cn.csv", header = TRUE)
+cn_data$doy <- factor(cn_data$doy)
 
 ### Histogram plot for N concentration data
-ggplot(cn_data, aes (x = n, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
+ggplot(cn_data, aes (x = doy, y = n, fill = field_id)) + 
+  geom_boxplot(alpha = 0.75) +
   theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
                     name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "N (%) per dry matter",
-       y = "Density",
+                    labels = c("G1a", "G1b", "G2", "G3")) +
+  labs(x = "Julian date (DOY)",
+       y = "N (%) per dry matter",
        caption = "Nitrogen (N) concentration data (WIZ)") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
-    plot.caption = element_text(size = 11, face = "italic", hjust = 0),
-    legend.position = "bottom"
-  )
-
-### Histogram plot for C concentration data
-ggplot(cn_data, aes (x = c, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
-  theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
-                    name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "C (%) per dry matter",
-       y = "Density",
-       caption = "Carbon (C) concentration data (WIZ)") +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 14),
-    plot.caption = element_text(size = 11, face = "italic", hjust = 0),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
     legend.position = "bottom"
   )
 
 ## ADF data
 
 adf_data <- read.csv("./input_wiz/adf/grassland_adf2.csv", header = TRUE)
+adf_data$doy <- factor(adf_data$doy)
 
 ### Histogram plot for ADF concentration data
-ggplot(adf_data, aes (x = adf, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
+ggplot(adf_data, aes (x = doy, y = adf, fill = field_id)) + 
+  geom_boxplot(alpha = 0.8) +
   theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
                     name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "ADF (%) per dry matter",
-       y = "Density",
+                    labels = c("G1a", "G1b", "G2", "G3")) +
+  labs(x = "Julian date (DOY)",
+       y = "ADF (%) per dry matter",
        caption = "Acid detergent fiber (ADF) concentration data (WIZ)") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
-    plot.caption = element_text(size = 11, face = "italic", hjust = 0),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
     legend.position = "bottom"
   )
 
@@ -136,14 +102,14 @@ ggplot(adf_data, aes (x = adf, fill= field_id)) +
 
 ggplot(merge(adf_data, cn_data) %>% tidyr::drop_na(), 
        aes (x = n, y = adf)) +
-  geom_point(aes(col = field_id), alpha = 0.8, size = 5, shape = 20) +
+  geom_point(aes(col = field_id), alpha = 0.75, size = 5, shape = 20) +
   stat_smooth(method=lm, se = FALSE, linetype = "twodash") +
   #facet_grid(. ~ harvest) + 
   coord_fixed(ratio = 0.15) +
   theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_color_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+  scale_color_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
                     name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
+                    labels = c("G1a", "G1b", "G2", "G3")) +
   labs(x = "N (%) per dry matter",
        y = "ADF (%) per dry matter",
        caption = "Nitrogen (N) vs Acid detergent fiber (ADF) data (WIZ)") +
@@ -195,18 +161,18 @@ spec_nrm_mat <- t(apply(spec_org_mat, 1, normalize.vector)) # Normalise each row
 
 ## Speclib data for original reflectance
 spec_org_data <- speclib(spec_org_mat, wv)
-SI(spec_org_data) <- hs_all_df[c(1:4, 123:133)]
+SI(spec_org_data) <- hs_all_df[c(1:4, 123:134)]
 spec_org_data
 
 ## Speclib data for normalised reflectance
 spec_nrm_data <- speclib(spec_nrm_mat, wv)
-SI(spec_nrm_data) <- hs_all_df[c(1:4, 123:133)]
+SI(spec_nrm_data) <- hs_all_df[c(1:4, 123:134)]
 spec_nrm_data
 
 ### Convert normalised reflectance back to a dataframe
-source("./spc_2df.R")
+source("./funs/spc_2df.R")
 hs_all_nrm_df <- spc_2df(spec_nrm_data)
-hs_all_nrm_df <- hs_all_nrm_df[c(1:4, 16:133, 5:15)] # arrange columns
+hs_all_nrm_df <- hs_all_nrm_df[c(1:4, 17:134, 5:16)] # arrange columns
 names(hs_all_nrm_df) <- names(hs_all_df)
 
 write.csv(hs_all_df, "./output_wiz/hs_all_org_df_wiz.csv", row.names = FALSE)
@@ -221,31 +187,31 @@ plot(subset(spec_org_data, field_id == "g1" & harvest == "H1"), FUN = "mean", co
      main = "Original Reflectance - Grassland Level (H1)", ylim=c(0,0.7))
 plot(subset(spec_org_data, field_id == "g2" & harvest == "H1"), FUN = "mean", col = "#B1740F", new = FALSE)
 plot(subset(spec_org_data, field_id == "g3" & harvest == "H1"), FUN = "mean", col = "#D5006A", new = FALSE)
-plot(subset(spec_org_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "#08585A", new = FALSE)
-legend("topleft", legend = c("G1", "G2", "G3", "G4"),
-       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+plot(subset(spec_org_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "#17377A", new = FALSE)
+legend("topleft", legend = c("G1a", "G1b", "G2", "G3"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#17377A"), lty=1)
 
 par(bg="gray97")
 plot(subset(spec_nrm_data, field_id == "g1" & harvest == "H1"), FUN = "mean", col = "#3CA437", 
      main = "Normalised Reflectance - Grassland Level (H1)", ylim=c(0,0.2))
 plot(subset(spec_nrm_data, field_id == "g2" & harvest == "H1"), FUN = "mean", col = "#B1740F", new = FALSE)
 plot(subset(spec_nrm_data, field_id == "g3" & harvest == "H1"), FUN = "mean", col = "#D5006A", new = FALSE)
-plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "#08585A", new = FALSE)
-legend("topleft", legend = c("G1", "G2", "G3", "G4"),
-       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "#17377A", new = FALSE)
+legend("topleft", legend = c("G1a", "G1b", "G2", "G3"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#17377A"), lty=1)
 
 
 ### Two cuts system
 
 plot(subset(spec_org_data, field_id == "g3" & harvest == "H1"), FUN = "mean", col = "darkgreen", 
-     main = "Original Reflectance - G3", ylim=c(0,0.7))
+     main = "Original Reflectance - G2", ylim=c(0,0.7))
 plot(subset(spec_org_data, field_id == "g3" & harvest == "H2"), FUN = "mean", col = "lightgreen", new = FALSE)
 legend("topleft", legend = c("H1", "H2"),
        col = c("darkgreen", "lightgreen"), lty=1)
 
 par(bg="gray97")
 plot(subset(spec_nrm_data, field_id == "g3" & harvest == "H1"), FUN = "mean", col = "darkgreen", 
-     main = "Normalised Reflectance - G3", ylim=c(0,0.2))
+     main = "Normalised Reflectance - G2", ylim=c(0,0.2))
 plot(subset(spec_nrm_data, field_id == "g3" & harvest == "H2"), FUN = "mean", col = "lightgreen", new = FALSE)
 legend("topleft", legend = c("H1", "H2"),
        col = c("darkgreen", "lightgreen"), lty=1)
@@ -254,7 +220,7 @@ legend("topleft", legend = c("H1", "H2"),
 ### Three cuts system
 
 plot(subset(spec_org_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "orangered2", 
-     main = "Original Reflectance - G4", ylim=c(0,0.7))
+     main = "Original Reflectance - G3", ylim=c(0,0.7))
 plot(subset(spec_org_data, field_id == "g4" & harvest == "H2"), FUN = "mean", col = "orange2", new = FALSE)
 plot(subset(spec_org_data, field_id == "g4" & harvest == "H3"), FUN = "mean", col = "orange4", new = FALSE)
 legend("topleft", legend = c("H1", "H2", "H3"),
@@ -262,7 +228,7 @@ legend("topleft", legend = c("H1", "H2", "H3"),
 
 
 plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "orangered2", 
-     main = "Normalised Reflectance - G4", ylim=c(0,0.2))
+     main = "Normalised Reflectance - G3", ylim=c(0,0.2))
 plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H2"), FUN = "mean", col = "orange2", new = FALSE)
 plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H3"), FUN = "mean", col = "orange4", new = FALSE)
 legend("topleft", legend = c("H1", "H2", "H3"),
@@ -274,7 +240,7 @@ par(mfrow=c(1,1))
 
 
 ## Correlation between reflectance vs N
-cor_n_df <- hs_all_nrm_df[c(5:122, 130)] %>%
+cor_n_df <- hs_all_nrm_df[c(5:122, 131)] %>%
   corrr::correlate() %>% 
   corrr::focus(n)
 
@@ -282,7 +248,7 @@ cor_n_df$wv <- wv
 
 
 ## Correlation between reflectance vs ADF
-cor_adf_df <- hs_all_nrm_df[c(5:122, 133)] %>%
+cor_adf_df <- hs_all_nrm_df[c(5:122, 134)] %>%
   corrr::correlate() %>% 
   corrr::focus(adf)
 
