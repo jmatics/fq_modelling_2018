@@ -18,8 +18,53 @@ library(purrr)
 library(readr)
 library(ppls)
 library(tibble)
+library(kableExtra)
 ```
-# 1. Reading and visualise trait data
+
+# 1. Summary of the grasslands
+
+
+```{r grassland info, echo=FALSE, results='asis'}
+
+gl_df <- data.frame(
+  field_id = c("G01", "G02", "G03", "G04"),
+  area = c("Meissner", "Meissner", "Werrau", "Hebenshausen"),
+  mowing_freq = c(1, 1, 2, 3),
+  veg_type = c(
+  "Geranio sylvatici-Trisetetum flavescentis (R.Knapp ex Oberd. 1957)",
+  "Polygalo-Nardetum strictae (Oberd. 1957)",
+  "Plantagini lanceolatae-Festucetum rubrae meadow",
+  "Seeded grassland dominated by Lolium perenne and Poa trivialis"
+  ),
+  desc = c(
+  "Nature conservation grassland, dry, late harvest, no fertilisation",
+  "Nature conservation grassland, wet, late harvest, no fertilisation",
+  "Extensive grassland at a riverside, no fertilisation",
+  "Intensive grassland, fertilised"
+  )
+  )
+
+kable(gl_df, col.names = c("Field ID", "Area", "No. of Mowings", "Vegetation Type", "Note"),
+      caption = "Details of the grasslands") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F)
+
+```
+
+```{r harvest info, echo=FALSE, results='asis'}
+harverst_df <- data.frame(field_id = c("G01", "G02", "G03", "G03","G04", "G04", "G04"),
+                          harvest_no = c("H1", "H1", "H1", "H2", "H1", "H2", "H3"),
+                          harvest_date = as.Date(c("2018-07-13", "2018-07-13", "2018-05-28", "2018-09-24", "2018-05-10", "2018-06-06", "2018-08-01")),
+                          harvest_date_doy = format(as.Date(c("2018-07-13", "2018-07-13", "2018-05-28", "2018-09-24", "2018-05-10", "2018-06-06", "2018-08-01")), "%j"))
+
+kable(harverst_df[,c(2:4)], col.names = c("Harvest No.", "Harvest Date", "Harvest Date (DOY)"),
+      caption = "Mowing detials of the grasslands") %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  group_rows("G01", 1, 1) %>%
+  group_rows("G02", 2, 2) %>%
+  group_rows("G03", 3, 4) %>%
+  group_rows("G04", 5, 7)
+```
+# 2. Reading and visualise trait data
 
 ## Biomass data
 
@@ -35,34 +80,17 @@ bm_data <- bm_list %>%
 bm_data$logdb <- log(bm_data$db) # Standardise dry biomass with log transformation
 
 ### Histogram plot for dry biomass data
-ggplot(bm_data, aes (x = db, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
+ggplot(bm_data, aes (x = doy, y = db, fill= harvest)) + 
+  geom_boxplot(alpha = 0.8) +
+  facet_grid(. ~ field_id, 
+             labeller = labeller(field_id = c(g1 = "G1", g2 = "G2", g3 = "G3", g4 = "G4"))) +
   theme_bw(base_size = 12, base_family = "Lucida") +
   scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
                     name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "Dry biomass (kg/m²)",
-       y = "Density",
+                    labels = c("H1", "H2", "H3")) +
+  labs(y = "Dry biomass (kg/m²)",
+       x = "Julian date (DOY)",
        caption = "Dry biomass data (WIZ)") +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 14),
-    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
-    legend.position = "bottom"
-  )
-
-### Histogram plot for log transformed dry biomass data
-ggplot(bm_data, aes (x = logdb, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
-  theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
-                    name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "Log transformed dry biomass (kg/m²)",
-       y = "Density",
-       caption = "Log transformed dry biomass data (WIZ)") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -77,15 +105,16 @@ ggplot(bm_data, aes (x = logdb, fill= field_id)) +
 cn_data <- read.csv("./input_wiz/cn/grassland_cn.csv", header = TRUE)
 
 ### Histogram plot for N concentration data
-ggplot(cn_data, aes (x = n, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
+ggplot(cn_data, aes (x = doy, y = n, fill= harvest)) + 
+  geom_boxplot(alpha = 0.8) +
+  facet_grid(. ~ field_id, 
+             labeller = labeller(field_id = c(g1 = "G1", g2 = "G2", g3 = "G3", g4 = "G4"))) +
   theme_bw(base_size = 12, base_family = "Lucida") +
   scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
                     name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "N (%) per dry matter",
-       y = "Density",
+                    labels = c("H1", "H2", "H3")) +
+  labs(x = "Julian date (DOY)",
+       y = "N (%) per dry matter",
        caption = "Nitrogen (N) concentration data (WIZ)") +
   theme(
     axis.text = element_text(size = 12),
@@ -94,23 +123,23 @@ ggplot(cn_data, aes (x = n, fill= field_id)) +
     legend.position = "bottom"
   )
 
-### Histogram plot for C concentration data
-ggplot(cn_data, aes (x = c, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
-  theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
-                    name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "C (%) per dry matter",
-       y = "Density",
-       caption = "Carbon (C) concentration data (WIZ)") +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 14),
-    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
-    legend.position = "bottom"
-  )
+# ### Histogram plot for C concentration data
+# ggplot(cn_data, aes (x = c, fill= field_id)) + 
+#   geom_density(alpha = 0.4) +
+#   facet_grid(. ~ harvest) +
+#   theme_bw(base_size = 12, base_family = "Lucida") +
+#   scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+#                     name = "Grassland ID", 
+#                     labels = c("G1", "G2", "G3", "G4")) +
+#   labs(x = "C (%) per dry matter",
+#        y = "Density",
+#        caption = "Carbon (C) concentration data (WIZ)") +
+#   theme(
+#     axis.text = element_text(size = 12),
+#     axis.title = element_text(size = 14),
+#     plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+#     legend.position = "bottom"
+#   )
 ```
 
 ## ADF data
@@ -119,16 +148,17 @@ ggplot(cn_data, aes (x = c, fill= field_id)) +
 adf_data <- read.csv("./input_wiz/adf/grassland_adf2.csv", header = TRUE)
 
 ### Histogram plot for ADF concentration data
-ggplot(adf_data, aes (x = adf, fill= field_id)) + 
-  geom_density(alpha = 0.4) +
-  facet_grid(. ~ harvest) +
+ggplot(adf_data, aes (x = doy, y = adf, fill= harvest)) + 
+  geom_boxplot(alpha = 0.8) +
+  facet_grid(. ~ field_id, 
+             labeller = labeller(field_id = c(g1 = "G1", g2 = "G2", g3 = "G3", g4 = "G4"))) +
   theme_bw(base_size = 12, base_family = "Lucida") +
   scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
-                    name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
-  labs(x = "ADF (%) per dry matter",
-       y = "Density",
-       caption = "Acid detergent fiber (ADF) concentration data (WIZ)") +
+                    name = "Harvest No.", 
+                    labels = c("H1", "H2", "H3")) +
+  labs(x = "Julian date (DOY)",
+       y = "ADF (%) per dry matter",
+       caption = "Nitrogen (N) concentration data (WIZ)") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -143,7 +173,7 @@ ggplot(adf_data, aes (x = adf, fill= field_id)) +
 
 ggplot(merge(adf_data, cn_data) %>% tidyr::drop_na(), 
        aes (x = n, y = adf)) +
-  geom_point(aes(col = field_id), alpha = 0.8, size = 5, shape = 20) +
+  geom_point(aes(col = field_id), alpha = 0.6, size = 5, shape = 20) +
   stat_smooth(method=lm, se = FALSE, linetype = "twodash") +
   #facet_grid(. ~ harvest) + 
   coord_fixed(ratio = 0.15) +
@@ -195,9 +225,9 @@ hs_all_df$field_id <- factor(hs_all_df$field_id)
 hs_all_df$harvest <- factor(hs_all_df$harvest)
 ```
 
-# 2. Hyperspectral data
+# 3. Hyperspectral data
 
-```{r speclib data, echo=FALSE, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%", comment="-->"}
+```{r speclib data, echo=FALSE, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%", comment=" "}
 
 wv <- seq(482, 950, 4)
 spec_df <- hs_all_df[c(5:122)] # Select only spectral data
@@ -207,18 +237,18 @@ spec_nrm_mat <- t(apply(spec_org_mat, 1, normalize.vector)) # Normalise each row
 
 ## Speclib data for original reflectance
 spec_org_data <- speclib(spec_org_mat, wv)
-SI(spec_org_data) <- hs_all_df[c(1:4, 123:133)]
+SI(spec_org_data) <- hs_all_df[c(1:4, 123:134)]
 #spec_org_data
 
 ## Speclib data for normalised reflectance
 spec_nrm_data <- speclib(spec_nrm_mat, wv)
-SI(spec_nrm_data) <- hs_all_df[c(1:4, 123:133)]
+SI(spec_nrm_data) <- hs_all_df[c(1:4, 123:134)]
 spec_nrm_data
 
 ### Convert normalised reflectance back to a dataframe
-source("./spc_2df.R")
+source("./funs/spc_2df.R")
 hs_all_nrm_df <- spc_2df(spec_nrm_data)
-hs_all_nrm_df <- hs_all_nrm_df[c(1:4, 16:133, 5:15)] # arrange columns
+hs_all_nrm_df <- hs_all_nrm_df[c(1:4, 17:134, 5:16)] # arrange columns
 names(hs_all_nrm_df) <- names(hs_all_df)
 
 ## Plotting mean spectral curves for Harvest level and grassland level
@@ -280,12 +310,12 @@ legend("topleft", legend = c("H1", "H2", "H3"),
 par(mfrow=c(1,1))
 ```
 
-# 3. Correlation with single bands
+# 4. Correlation with single bands
 
 ```{r cor analysis, echo=FALSE, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
 
 ## Correlation between reflectance vs N
-cor_n_df <- hs_all_nrm_df[c(5:122, 130)] %>%
+cor_n_df <- hs_all_nrm_df[c(5:122, 131)] %>%
   corrr::correlate() %>% 
   corrr::focus(n)
 
@@ -293,7 +323,7 @@ cor_n_df$wv <- wv
 
 
 ## Correlation between reflectance vs ADF
-cor_adf_df <- hs_all_nrm_df[c(5:122, 133)] %>%
+cor_adf_df <- hs_all_nrm_df[c(5:122, 134)] %>%
   corrr::correlate() %>% 
   corrr::focus(adf)
 
@@ -306,7 +336,7 @@ names(cor_df_melt) <- c("Wavelength", "Quality", "Correlation")
 
 ggplot(cor_df_melt, aes(x = Wavelength, y = Correlation, group = Quality)) +
   geom_line(aes(color = Quality))+
-  geom_point(aes(color = Quality)) +
+  geom_point(aes(color = Quality)) + ylim(c(-1,1)) +
   theme_bw(base_size = 12, base_family = "Lucida") +
   scale_color_manual(values = c("#E48F1B", "#42858C"),
                     name = "Forage quality parameter", 
@@ -322,7 +352,7 @@ ggplot(cor_df_melt, aes(x = Wavelength, y = Correlation, group = Quality)) +
   )
 ```
 
-# 4. Linear regression models with normalised difference spectral indices (NDSI)
+# 5. Linear regression models with normalised difference spectral indices (NDSI)
 
 ```{r ndsi, echo=FALSE, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
 
