@@ -27,14 +27,14 @@ library(kableExtra)
 ```{r grassland info, echo=FALSE, results='asis'}
 
 gl_df <- data.frame(
-  field_id = c("G01", "G02", "G03", "G04"),
-  area = c("Meissner", "Meissner", "Werrau", "Hebenshausen"),
+  field_id = c("G1a", "G1b", "G2", "G3"),
+  area = c("Meißner", "Meißner", "Werrau", "Hebenshausen"),
   mowing_freq = c(1, 1, 2, 3),
   veg_type = c(
   "Geranio sylvatici-Trisetetum flavescentis (R.Knapp ex Oberd. 1957)",
   "Polygalo-Nardetum strictae (Oberd. 1957)",
   "Plantagini lanceolatae-Festucetum rubrae meadow",
-  "Seeded grassland dominated by Lolium perenne and Poa trivialis"
+  "Seeded grassland dominated by *Lolium perenne* and *Poa trivialis*"
   ),
   desc = c(
   "Nature conservation grassland, dry, late harvest, no fertilisation",
@@ -51,20 +51,20 @@ kable(gl_df, col.names = c("Field ID", "Area", "No. of Mowings", "Vegetation Typ
 ```
 
 ```{r harvest info, echo=FALSE, results='asis'}
-harverst_df <- data.frame(field_id = c("G01", "G02", "G03", "G03","G04", "G04", "G04"),
+harverst_df <- data.frame(field_id = c("G1a", "G1b", "G2", "G2","G3", "G3", "G3"),
                           harvest_no = c("H1", "H1", "H1", "H2", "H1", "H2", "H3"),
-                          harvest_date = as.Date(c("2018-07-13", "2018-07-13", "2018-05-28", "2018-09-24", "2018-05-10", "2018-06-06", "2018-08-01")),
-                          harvest_date_doy = format(as.Date(c("2018-07-13", "2018-07-13", "2018-05-28", "2018-09-24", "2018-05-10", "2018-06-06", "2018-08-01")), "%j"))
+                          harvest_date = as.Date(c("2018-07-13", "2018-07-14", "2018-05-28", "2018-09-24", "2018-05-10", "2018-06-06", "2018-08-01")),
+                          harvest_date_doy = format(as.Date(c("2018-07-13", "2018-07-14", "2018-05-28", "2018-09-24", "2018-05-10", "2018-06-06", "2018-08-01")), "%j"))
 
 kable(harverst_df[,c(2:4)], col.names = c("Harvest No.", "Harvest Date", "Harvest Date (DOY)"),
       caption = "Mowing detials of the grasslands") %>%
   kable_styling(bootstrap_options = "striped", full_width = F) %>%
-  group_rows("G01", 1, 1) %>%
-  group_rows("G02", 2, 2) %>%
-  group_rows("G03", 3, 4) %>%
-  group_rows("G04", 5, 7)
+  group_rows("G1a", 1, 1) %>%
+  group_rows("G1b", 2, 2) %>%
+  group_rows("G2", 3, 4) %>%
+  group_rows("G3", 5, 7)
 ```
-# 2. Reading and visualise trait data
+# 2. Filed data (biomass, N, and, ADF)
 
 ## Biomass data
 
@@ -78,16 +78,17 @@ bm_data <- bm_list %>%
 
 
 bm_data$logdb <- log(bm_data$db) # Standardise dry biomass with log transformation
+bm_data$doy <- factor(bm_data$doy)
 
 ### Histogram plot for dry biomass data
-ggplot(bm_data, aes (x = doy, y = db, fill= harvest)) + 
+ggplot(bm_data, aes (x = doy, y = db, fill = field_id)) + 
   geom_boxplot(alpha = 0.8) +
-  facet_grid(. ~ field_id, 
-             labeller = labeller(field_id = c(g1 = "G1", g2 = "G2", g3 = "G3", g4 = "G4"))) +
+  #facet_grid(. ~ field_id, 
+             #labeller = labeller(field_id = c(g1 = "G1", g2 = "G2", g3 = "G3", g4 = "G4"))) +
   theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
                     name = "Grassland ID", 
-                    labels = c("H1", "H2", "H3")) +
+                    labels = c("G1a", "G1b", "G2", "G3")) +
   labs(y = "Dry biomass (kg/m²)",
        x = "Julian date (DOY)",
        caption = "Dry biomass data (WIZ)") +
@@ -99,20 +100,19 @@ ggplot(bm_data, aes (x = doy, y = db, fill= harvest)) +
   )
 ```
 
-## Nitrogen (N) and Carbon (C) data
+## Nitrogen (N) data
 
 ```{r cn data, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
 cn_data <- read.csv("./input_wiz/cn/grassland_cn.csv", header = TRUE)
+cn_data$doy <- factor(cn_data$doy)
 
 ### Histogram plot for N concentration data
-ggplot(cn_data, aes (x = doy, y = n, fill= harvest)) + 
-  geom_boxplot(alpha = 0.8) +
-  facet_grid(. ~ field_id, 
-             labeller = labeller(field_id = c(g1 = "G1", g2 = "G2", g3 = "G3", g4 = "G4"))) +
+ggplot(cn_data, aes (x = doy, y = n, fill = field_id)) + 
+  geom_boxplot(alpha = 0.75) +
   theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
                     name = "Grassland ID", 
-                    labels = c("H1", "H2", "H3")) +
+                    labels = c("G1a", "G1b", "G2", "G3")) +
   labs(x = "Julian date (DOY)",
        y = "N (%) per dry matter",
        caption = "Nitrogen (N) concentration data (WIZ)") +
@@ -128,7 +128,7 @@ ggplot(cn_data, aes (x = doy, y = n, fill= harvest)) +
 #   geom_density(alpha = 0.4) +
 #   facet_grid(. ~ harvest) +
 #   theme_bw(base_size = 12, base_family = "Lucida") +
-#   scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+#   scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
 #                     name = "Grassland ID", 
 #                     labels = c("G1", "G2", "G3", "G4")) +
 #   labs(x = "C (%) per dry matter",
@@ -142,20 +142,19 @@ ggplot(cn_data, aes (x = doy, y = n, fill= harvest)) +
 #   )
 ```
 
-## ADF data
+## Acid detergent fiber (ADF) data
 
 ```{r adf data, warning=FALSE, error=FALSE, message = FALSE, fig.align='center', out.width="100%"}
 adf_data <- read.csv("./input_wiz/adf/grassland_adf2.csv", header = TRUE)
+adf_data$doy <- factor(adf_data$doy)
 
 ### Histogram plot for ADF concentration data
-ggplot(adf_data, aes (x = doy, y = adf, fill= harvest)) + 
+ggplot(adf_data, aes (x = doy, y = adf, fill = field_id)) + 
   geom_boxplot(alpha = 0.8) +
-  facet_grid(. ~ field_id, 
-             labeller = labeller(field_id = c(g1 = "G1", g2 = "G2", g3 = "G3", g4 = "G4"))) +
   theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
-                    name = "Harvest No.", 
-                    labels = c("H1", "H2", "H3")) +
+  scale_fill_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
+                    name = "Grassland ID", 
+                    labels = c("G1a", "G1b", "G2", "G3")) +
   labs(x = "Julian date (DOY)",
        y = "ADF (%) per dry matter",
        caption = "Nitrogen (N) concentration data (WIZ)") +
@@ -178,9 +177,9 @@ ggplot(merge(adf_data, cn_data) %>% tidyr::drop_na(),
   #facet_grid(. ~ harvest) + 
   coord_fixed(ratio = 0.15) +
   theme_bw(base_size = 12, base_family = "Lucida") +
-  scale_color_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#08585A"),
+  scale_color_manual(values = c("#3CA437", "#B1740F", "#D5006A", "#17377A"),
                     name = "Grassland ID", 
-                    labels = c("G1", "G2", "G3", "G4")) +
+                    labels = c("G1a", "G1b", "G2", "G3")) +
   labs(x = "N (%) per dry matter",
        y = "ADF (%) per dry matter",
        caption = "Nitrogen (N) vs Acid detergent fiber (ADF) data (WIZ)") +
@@ -260,31 +259,31 @@ plot(subset(spec_org_data, field_id == "g1" & harvest == "H1"), FUN = "mean", co
      main = "Original Reflectance - H1", ylim=c(0,0.7))
 plot(subset(spec_org_data, field_id == "g2" & harvest == "H1"), FUN = "mean", col = "#B1740F", new = FALSE)
 plot(subset(spec_org_data, field_id == "g3" & harvest == "H1"), FUN = "mean", col = "#D5006A", new = FALSE)
-plot(subset(spec_org_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "#08585A", new = FALSE)
-legend("topleft", legend = c("G1", "G2", "G3", "G4"),
-       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+plot(subset(spec_org_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "#17377A", new = FALSE)
+legend("topleft", legend = c("G1a", "G1b", "G2", "G3"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#17377A"), lty=1)
 
 
 plot(subset(spec_nrm_data, field_id == "g1" & harvest == "H1"), FUN = "mean", col = "#3CA437", 
      main = "Normalised Reflectance - H1", ylim=c(0,0.2))
 plot(subset(spec_nrm_data, field_id == "g2" & harvest == "H1"), FUN = "mean", col = "#B1740F", new = FALSE)
 plot(subset(spec_nrm_data, field_id == "g3" & harvest == "H1"), FUN = "mean", col = "#D5006A", new = FALSE)
-plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "#08585A", new = FALSE)
-legend("topleft", legend = c("G1", "G2", "G3", "G4"),
-       col = c("#3CA437", "#B1740F", "#D5006A", "#08585A"), lty=1)
+plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "#17377A", new = FALSE)
+legend("topleft", legend = c("G1a", "G1b", "G2", "G3"),
+       col = c("#3CA437", "#B1740F", "#D5006A", "#17377A"), lty=1)
 
 
 ### Two cuts system
 
 plot(subset(spec_org_data, field_id == "g3" & harvest == "H1"), FUN = "mean", col = "darkgreen", 
-     main = "Original Reflectance - G3", ylim=c(0,0.7))
+     main = "Original Reflectance - G2", ylim=c(0,0.7))
 plot(subset(spec_org_data, field_id == "g3" & harvest == "H2"), FUN = "mean", col = "#6B244C", new = FALSE)
 legend("topleft", legend = c("H1", "H2"),
        col = c("darkgreen", "#6B244C"), lty=1)
 
 
 plot(subset(spec_nrm_data, field_id == "g3" & harvest == "H1"), FUN = "mean", col = "darkgreen", 
-     main = "Normalised Reflectance - G3", ylim=c(0,0.2))
+     main = "Normalised Reflectance - G2", ylim=c(0,0.2))
 plot(subset(spec_nrm_data, field_id == "g3" & harvest == "H2"), FUN = "mean", col = "#6B244C", new = FALSE)
 legend("topleft", legend = c("H1", "H2"),
        col = c("darkgreen", "#6B244C"), lty=1)
@@ -293,7 +292,7 @@ legend("topleft", legend = c("H1", "H2"),
 ### Three cuts system
 
 plot(subset(spec_org_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "orangered2", 
-     main = "Original Reflectance - G4", ylim=c(0,0.7))
+     main = "Original Reflectance - G3", ylim=c(0,0.7))
 plot(subset(spec_org_data, field_id == "g4" & harvest == "H2"), FUN = "mean", col = "orange2", new = FALSE)
 plot(subset(spec_org_data, field_id == "g4" & harvest == "H3"), FUN = "mean", col = "orange4", new = FALSE)
 legend("topleft", legend = c("H1", "H2", "H3"),
@@ -301,7 +300,7 @@ legend("topleft", legend = c("H1", "H2", "H3"),
 
 
 plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H1"), FUN = "mean", col = "orangered2", 
-     main = "Normalised Reflectance - G4", ylim=c(0,0.2))
+     main = "Normalised Reflectance - G3", ylim=c(0,0.2))
 plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H2"), FUN = "mean", col = "orange2", new = FALSE)
 plot(subset(spec_nrm_data, field_id == "g4" & harvest == "H3"), FUN = "mean", col = "orange4", new = FALSE)
 legend("topleft", legend = c("H1", "H2", "H3"),
