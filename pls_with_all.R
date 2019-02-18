@@ -36,28 +36,33 @@ dsb_df$source <- rep("Rhön", dim(dsb_df)[1])
 ## merging two data sets
 
 all_df <- rbind(wiz_df, dsb_df)
-all_df$row <- c(1:nrow(all_df))
+
 
 
 # 2. Data partioning and variable identification
 
-set.seed(2147483647)
+set.seed(777)
 
 table(all_df$field_id) # Check exisisting data rows based on field id
 
 ## Separate data set in to two groups with same propotion from each group (60%)
-split_sample <- groupdata2::partition(all_df, p = 0.8, cat_col = "field_id", 
-                                      num_col = NULL, id_col = NULL, 
-                                      id_aggregation_fn = sum, 
-                                      force_equal = FALSE, list_out = F)
+split_sample <-
+  groupdata2::partition(
+    all_df,
+    p = 0.8,
+    cat_col = "field_id",
+    force_equal = FALSE,
+    list_out = F
+  )  %>%
+  data.frame()
 
 ## Subset to train data (1)
 #train_df  <- split_sample[[1]]
-train_df <- split_sample %>% dplyr::filter(.partitions == 1) %>% data.frame()
+train_df <- split_sample %>% dplyr::filter(.partitions == 1) %>% dplyr::select(-.partitions)
 table(train_df$field_id)
 
 ## Subset to train data (2)
-test_df <- split_sample %>% dplyr::filter(.partitions == 2) %>% data.frame()
+test_df <- split_sample %>% dplyr::filter(.partitions == 2)
 table(test_df$field_id)
 
 ## Coulmn index for estimators (independent variables)
