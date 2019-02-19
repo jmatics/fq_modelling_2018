@@ -36,7 +36,7 @@ bm_cn_adf_data$cn_ratio <- bm_cn_adf_data$c/bm_cn_adf_data$n
 bm_cn_adf_data <- bm_cn_adf_data[c(1:10, 14, 12, 11, 15, 13)]
 bm_cn_adf_data$harvest <- factor(bm_cn_adf_data$harvest, labels = c("H1", "H2", "H3"))
 bm_cn_adf_data$doy <- factor(bm_cn_adf_data$doy)
-colnames(bm_cn_adf_data)[6] <- "fb_sample"
+colnames(bm_cn_adf_data)[7] <- "fb_sample"
 
 ### Histogram plot for dry biomass data
 ggplot(bm_cn_adf_data, aes (x = doy, y = db, fill = field_id)) + 
