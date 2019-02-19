@@ -1,3 +1,9 @@
+#####################################################################################################
+# Function to plot "observed vs predicted" and "predicted vs residuals" plots for calibrated ML model
+# Script by Jayan Wijesingha (jayan.wijesingha@uni-kassel.de)
+# 2019-02-10
+#####################################################################################################
+
 obs_pred_plot <- function(model, df, estimators, target, plot = TRUE, title = FALSE){
   op_df <- data.frame("field_id" = df$field_id,
                       "fp_id" = df$fp_id,
