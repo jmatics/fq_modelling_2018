@@ -36,7 +36,7 @@ obs_pred_plot <- function(model, df, estimators, target, plot = TRUE, title = FA
     prPlot <- ggplot(op_df, 
                      aes(x=Predicted, y=Residuals, fill=source)) +
       #geom_point()  + 
-      geom_label(label=op_df$fp_id, size=3, color="white", check_overlap = T) +
+      geom_label(label=op_df$fp_id, size=3, color="white") +
       geom_abline(mapping = NULL, data = NULL, slope = 0, intercept = 0, 
                   linetype = "twodash", color = "black") +
       ggthemes::theme_few(base_family = "Helvetica") + 

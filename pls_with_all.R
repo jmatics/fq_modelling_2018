@@ -36,7 +36,42 @@ dsb_df$source <- rep("Rhön", dim(dsb_df)[1])
 ## merging two data sets
 
 all_df <- rbind(wiz_df, dsb_df)
+all_df$doy <- factor(all_df$doy)
 
+
+### Histogram plot for N concentration data
+ggplot(all_df, aes (x = doy, y = n, fill = field_id)) + 
+  geom_boxplot(alpha = 0.75) +
+  theme_bw(base_size = 12, base_family = "Lucida") +
+  jcolors::scale_fill_jcolors("pal7",
+                    name = "Grassland ID", 
+                    labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL")) +
+  labs(x = "Julian date (DOY)",
+       y = "N (%) per dry matter",
+       caption = "Nitrogen (N) concentration data (all)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+
+### Histogram plot for N concentration data
+ggplot(all_df, aes (x = doy, y = adf, fill = field_id)) + 
+  geom_boxplot(alpha = 0.9) +
+  theme_bw(base_size = 12, base_family = "Lucida") +
+  jcolors::scale_fill_jcolors("pal7",
+                              name = "Grassland ID", 
+                              labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL")) +
+  labs(x = "Julian date (DOY)",
+       y = "ADF (%) per dry matter",
+       caption = "Acid detergent fiber (ADF) concentration data (all)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
 
 
 # 2. Data partioning and variable identification

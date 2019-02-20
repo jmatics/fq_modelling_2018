@@ -1,0 +1,373 @@
+---
+title: "Partial least squares regression (PLSR) for N and ADF estimation"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook for PLSR model calibration and validation for grassland N (%) and ADF (%) estimation. 
+
+# Preperation
+
+### Loading required libraries
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+#rm(list = ls())
+
+library(data.table)
+library(dplyr)
+library(hsdar)
+library(ggplot2)
+library(caret)
+library(purrr)
+library(readr)
+library(ppls)
+library(tibble)
+library(MASS)
+
+windowsFonts(Helvetica=windowsFont("Helvetica-Regular"))
+```
+
+### Read data tables
+
+```{r}
+## Read WIZ data
+wiz_df <-  fread("D:/Data_Processing/2018/fq_modelling_2018/output_wiz/hs_all_nrm_df_wiz.csv", header = TRUE)
+wiz_df$source <- rep("Witzenhausen", dim(wiz_df)[1])
+
+## Read Rhön data
+
+dsb_df <-
+  read.csv("D:/Data_Processing/2018/fq_modelling_2018/output_dsb/hs_all_nrm_df_dsb.csv", header = TRUE)
+dsb_df$source <- rep("Rhön", dim(dsb_df)[1])
+
+## merging two data sets
+
+all_df <- rbind(wiz_df, dsb_df)
+all_df$doy <- factor(all_df$doy)
+```
+
+### Summary of the N concentration data
+
+```{r}
+### Box plot for N concentration data
+ggplot(all_df, aes (x = doy, y = n, fill = field_id)) + 
+  geom_boxplot(alpha = 0.75) +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+  jcolors::scale_fill_jcolors("pal7",
+                    name = "Grassland ID", 
+                    labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL")) +
+  labs(x = "Julian date (DOY)",
+       y = "N (%) per dry matter",
+       caption = "Nitrogen (N) concentration data (all)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+### Summary of the ADF concentration data
+
+```{r}
+### Box plot for ADF concentration data
+ggplot(all_df, aes (x = doy, y = adf, fill = field_id)) + 
+  geom_boxplot(alpha = 0.9) +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+  jcolors::scale_fill_jcolors("pal7",
+                              name = "Grassland ID", 
+                              labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL")) +
+  labs(x = "Julian date (DOY)",
+       y = "ADF (%) per dry matter",
+       caption = "Acid detergent fiber (ADF) concentration data (all)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+# Model calibration / validation
+
+Each PLSR model will calibrate and validate **100 times** based on randomly selected train / test datasets. But within each model calibration phase, it will be **repeated cross-validated**.
+
+### Define list variables
+
+```{r}
+# Populate random 100 seed value vector between 1 and 99999
+seedVec <- sample(c(1:99999), 100, replace=FALSE)
+
+train_list <- vector("list", 100) 
+test_list <- vector("list", 100)
+
+plsFit_n <- vector("list", 100)
+op_n <- vector("list", 100)
+
+plsFit_adf <- vector("list", 100)
+op_adf <- vector("list", 100)
+```
+
+### Define necessray variables for cal/val
+```{r}
+
+## Coulmn index for estimators (independent variables)
+estimators <- c(5:122)
+
+## Coulmn index for each targets (dependent variables)
+targetN <- 131
+targetADF <- 134
+
+## Define control parameters
+myControl <- trainControl(
+  method = "repeatedcv",
+  number = 10,
+  repeats = 5,
+  returnResamp = "all",
+  allowParallel = TRUE
+)
+
+metric <- "RMSE"
+tunegrid <- expand.grid(.ncomp = c(1:20))
+```
+
+### Cal/Val process 100 times
+
+```{r, message=FALSE, warning=FALSE}
+
+library(doParallel)
+cls = makeCluster(detectCores() - 1)
+registerDoParallel(cls)
+
+tictoc::tic("forLoop")
+for (k in 1:length(seedVec)) {
+  set.seed(seedVec[k])
+  
+  # Data spliting
+  split_sample <-
+    groupdata2::partition(
+      all_df,
+      p = 0.8,
+      cat_col = "field_id",
+      force_equal = FALSE,
+      list_out = F
+    ) %>% data.frame()
+  
+  train_list[[k]] <-
+    split_sample %>% dplyr::filter(.partitions == 1) 
+  
+  test_list[[k]] <-
+    split_sample %>% dplyr::filter(.partitions == 2)
+  
+  test_list[[k]]$seed <- rep(seedVec[k], dim(test_list[[k]])[1])
+  
+  # Train PLSR model for N %
+  plsFit_n[[k]] <-
+    train(
+      n ~ .,
+      data = train_list[[k]][, c(targetN, estimators)],
+      method = "pls",
+      metric = metric,
+      tuneGrid = tunegrid,
+      trControl = myControl,
+      preProcess = c("center", "scale")
+    )
+  
+  # Train PLSR model for ADF %
+  plsFit_adf[[k]] <-
+    train(
+      adf ~ .,
+      data = train_list[[k]][, c(targetADF, estimators)],
+      method = "pls",
+      metric = metric,
+      tuneGrid = tunegrid,
+      trControl = myControl,
+      preProcess = c("center", "scale")
+    )
+  
+  # Test PLSR model for N %
+  op_n[[k]] <- postResample(test_list[[k]][, targetN],
+                                predict(plsFit_n[[k]], newdata=test_list[[k]][, estimators]))
+  
+  # Test PLSR model for ADF %
+  op_adf[[k]] <- postResample(test_list[[k]][, targetADF],
+                            predict(plsFit_adf[[k]], newdata=test_list[[k]][, estimators]))
+  
+}
+tictoc::toc()
+```
+
+### Prepartion for visualise cal/val outputs
+
+```{r}
+# Compute mean N (%) for each test data subset to calculate rRMSEP
+
+mean_n <- numeric()
+for(i in 1:100){
+  mean_n[i] <- mean(test_list[[i]][, targetN])
+}
+
+# Compute mean ADF (%) for each test data subset to calculate rRMSEP
+
+mean_adf <- numeric()
+for (i in 1:100) {
+  mean_adf[i] <- mean(test_list[[i]][, targetADF])
+}
+```
+
+### Model cal/val output plots
+
+```{r}
+# Plots for best tune parameter (No. of components)
+best_tune_df <- data.frame("comp" = c(unlist(lapply(plsFit_n,"[[","bestTune")),
+                                      unlist(lapply(plsFit_adf,"[[","bestTune"))),
+                           "model" = c(rep("N", 100), rep("ADF", 100)))
+
+ggplot(data = best_tune_df, aes(x = model, y = comp, fill = model)) + 
+  geom_boxplot() +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+  labs(y = "No. of components",
+       x = "Model variable",
+       caption = "Best tune parameter (No. of components) for PLSR models") +
+  scale_fill_manual(values = c("#42858C", "#E48F1B"),
+                     name = "Forage quality parameter", 
+                     labels = c("ADF (%)", "Nitrogen (%)")) +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+```{r}
+# rRMSEP plots
+best_rmse_df <- data.frame("rmse" = c((unlist(lapply(op_n,"[[","RMSE"))/mean_n)*100,
+                                      (unlist(lapply(op_adf,"[[","RMSE"))/mean_adf)*100),
+                           "model" = c(rep("N", 100), rep("ADF", 100)))
+
+ggplot(data = best_rmse_df, aes(x = model, y = rmse, fill = model)) + 
+  geom_boxplot() +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+  labs(y = "rRMSEP (%)",
+       x = "Model variable",
+       caption = "relative RMSE (%) for PLSR models") +
+  scale_fill_manual(values = c("#42858C", "#E48F1B"),
+                     name = "Forage quality parameter", 
+                     labels = c("ADF (%)", "Nitrogen (%)")) +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+# Best models
+
+### Identify best train/test subset
+
+```{r}
+best_k_for_n <- which.min(unlist(lapply(op_n,"[[","RMSE")))
+best_k_for_adf <- which.min(unlist(lapply(op_adf,"[[","RMSE")))
+```
+
+### Best PLSR for N estimation with best train/test subset
+
+```{r}
+set.seed(seedVec[best_k_for_n])
+
+pls_best_n <- plsFit_n[[best_k_for_n]]
+
+
+save(best_k_for_n, pls_best_n, file = "D:/Data_Processing/2018/fq_modelling_2018/output/models/plsr_best_N.RData")
+
+print(pls_best_n)
+plot(pls_best_n)
+```
+```{r, warning=FALSE, message=FALSE}
+plot(varImp(pls_best_n), 10, 
+     main = "PLSR for N (%) estimation - Important variables for prediction")
+```
+
+```{r}
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+
+obs_pred_plot(pls_best_n, test_list[[best_k_for_n]], 
+              estimators, targetN, plot = TRUE, 
+              title = "N (%) estimation model with PLSR")
+```
+
+
+### Best PLSR for ADF estimation with best train/test subset
+
+```{r}
+set.seed(seedVec[best_k_for_adf])
+
+pls_best_adf <- plsFit_adf[[best_k_for_adf]]
+
+save(best_k_for_adf, pls_best_adf, file = "D:/Data_Processing/2018/fq_modelling_2018/output/models/plsr_best_ADF.RData")
+
+print(pls_best_adf)
+plot(pls_best_adf)
+```
+```{r}
+plot(varImp(pls_best_adf), 10, 
+     main = "PLSR for ADF (%) estimation - Important variables for prediction")
+```
+
+```{r}
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+
+obs_pred_plot(pls_best_adf, test_list[[best_k_for_adf]], 
+              estimators, targetADF, plot = TRUE, 
+              title = "ADF (%) estimation model with PLSR")
+```
+
+# PLSR profile for recursive feature elimination (RFE)
+
+### PLSR profile for N estimation
+```{r}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/plsr_n_profile.RData")
+
+plsr_n_df <- data.frame("rmse" = plsr_n_profile$results$RMSE,
+                        "var" = plsr_n_profile$results$Variables)
+
+ggplot(data = plsr_n_df, aes(x = var, y = (rmse/mean(all_df$n))*100)) +
+  geom_line(col = "#E48F1B") +
+  geom_point(col = "#E48F1B") +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+  labs(x = "Variables",
+       y = "rRMSEP (%) (Bootstrap)",
+       caption = "Recursive feature elimination (RFE) for PLSR model with N (%)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+### PLSR profile for N estimation
+```{r}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/plsr_adf_profile.RData")
+
+plsr_adf_df <- data.frame("rmse" = plsr_adf_profile$results$RMSE,
+                        "var" = plsr_adf_profile$results$Variables)
+
+ggplot(data = plsr_adf_df, aes(x = var, y = (rmse/mean(all_df$adf))*100)) +
+  geom_line(col = "#42858C") +
+  geom_point(col = "#42858C") +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+  labs(x = "Variables",
+       y = "rRMSEP (%) (Bootstrap)",
+       caption = "Recursive feature elimination (RFE) for PLSR model with ADF (%)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
