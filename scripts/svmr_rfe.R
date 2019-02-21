@@ -1,6 +1,6 @@
 ###############################################
-# 19.02.2018
-# RFE for PLSR with N (%) and ADF (%)
+# 20.02.2018
+# RFE for SVMR with N (%) and ADF (%)
 # JW
 ###############################################
 
@@ -67,7 +67,8 @@ myControl <- trainControl(
 )
 
 metric <- "RMSE"
-tunegrid <- expand.grid(.ncomp = c(1:12))
+tunegrid <- tunegrid<- expand.grid(sigma = c(0,0.01, 0.02, 0.025, 0.03, 0.04,0.05, 0.06, 0.07,0.08, 0.09, 0.1, 0.25, 0.5, 0.75,0.9,1,1.5,2), 
+                                   C = c(0,0.01, 0.05, 0.1, 0.25, 0.5, 0.75,1, 1.5, 2,5))
 
 
 ## with N
@@ -81,38 +82,38 @@ registerDoParallel(cls)
 set.seed(777)
 x <- all_df[, estimators]
 y <- all_df[, targetN]
-plsr_n_profile <- rfe(
+svmr_n_profile <- rfe(
   x,
   y,
   sizes = c(5:118),
   rfeControl = rfeControl(functions = caretFuncs,
                           number = 5),
-  method = "pls",
+  method = "svmRadial",
   trControl = myControl,
   preProcess = c("center", "scale")
 )
 tictoc::toc()
 
-save(plsr_n_profile, file = "./output/models/plsr_n_profile.RData")
+save(svmr_n_profile, file = "./output/models/svmr_n_profile.RData")
 
 
 # summarize the results
-print(plsr_n_profile)
+print(svmr_n_profile)
 # list the chosen features
-predictors(plsr_n_profile)
+predictors(svmr_n_profile)
 # plot the results
-plot(plsr_n_profile, type = c("g", "o"))
+plot(svmr_n_profile, type = c("g", "o"))
 
-plsr_n_df <- data.frame("rmse" = plsr_n_profile$results$RMSE,
-                        "var" = plsr_n_profile$results$Variables)
+svmr_n_df <- data.frame("rmse" = svmr_n_profile$results$RMSE,
+                       "var" = svmr_n_profile$results$Variables)
 
-ggplot(data = plsr_n_df, aes(x = var, y = (rmse/mean(all_df$n))*100)) +
+ggplot(data = svmr_n_df, aes(x = var, y = (rmse/mean(all_df$n))*100)) +
   geom_line(col = "#E48F1B") +
   geom_point(col = "#E48F1B") +
   theme_bw(base_size = 12, base_family = "Lucida") +
   labs(x = "Variables",
        y = "rRMSEP (%) (Bootstrap)",
-       caption = "Recursive feature elimination (RFE) for PLSR model with N (%)") +
+       caption = "Recursive feature elimination (RFE) for SVMR model with N (%)") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -135,38 +136,38 @@ registerDoParallel(cls)
 set.seed(777)
 x <- all_df[, estimators]
 y <- all_df[, targetADF]
-plsr_adf_profile <- rfe(
+svmr_adf_profile <- rfe(
   x,
   y,
   sizes = c(5:118),
   rfeControl = rfeControl(functions = caretFuncs,
                           number = 5),
-  method = "pls",
+  method = "svmRadial",
   trControl = myControl,
   preProcess = c("center", "scale")
 )
 tictoc::toc()
 
-save(plsr_adf_profile, file = "./output/models/plsr_adf_profile.RData")
+save(svmr_adf_profile, file = "./output/models/svmr_adf_profile.RData")
 
 
 # summarize the results
-print(plsr_adf_profile)
+print(svmr_adf_profile)
 # list the chosen features
-predictors(plsr_adf_profile)
+predictors(svmr_adf_profile)
 # plot the results
-plot(plsr_adf_profile, type = c("g", "o"))
+plot(svmr_adf_profile, type = c("g", "o"))
 
-plsr_adf_df <- data.frame("rmse" = plsr_adf_profile$results$RMSE,
-                        "var" = plsr_adf_profile$results$Variables)
+svmr_adf_df <- data.frame("rmse" = svmr_adf_profile$results$RMSE,
+                         "var" = svmr_adf_profile$results$Variables)
 
-ggplot(data = plsr_adf_df, aes(x = var, y = (rmse/mean(all_df$adf))*100)) +
+ggplot(data = svmr_adf_df, aes(x = var, y = (rmse/mean(all_df$adf))*100)) +
   geom_line(col = "#42858C") +
   geom_point(col = "#42858C") +
   theme_bw(base_size = 12, base_family = "Lucida") +
   labs(x = "Variables",
        y = "rRMSEP (%) (Bootstrap)",
-       caption = "Recursive feature elimination (RFE) for PLSR model with ADF (%)") +
+       caption = "Recursive feature elimination (RFE) for SVMR model with ADF (%)") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
