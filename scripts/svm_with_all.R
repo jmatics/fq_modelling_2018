@@ -111,7 +111,7 @@ targetADF <- 134
 # 3. Model calibration (training)
 
 ## Preperation for parallel processing
-timestamp()
+tictoc::tic("svm_all_n")
 library(doParallel)
 cls = makeCluster(detectCores()-1) 
 registerDoParallel(cls)
@@ -127,11 +127,8 @@ set.seed(777)
 
 ## 3.1 SVMR
 metric <- "RMSE"
-tunegrid <- tunegrid<- expand.grid(sigma = c(0, 0.01, 0.02, 0.025, 0.03, 0.04, 0.05, 
-                                             0.06, 0.07,0.08, 0.09, 0.1, 0.25, 0.5, 
-                                             0.75, 0.9, 1, 1.5, 2), 
-                                   C = c(0, 0.01, 0.05, 0.1, 0.25, 0.5, 
-                                         0.75, 1, 1.5, 2,5))
+tunegrid <- expand.grid(sigma = seq(0.01, 0.05, 0.005), 
+                                   C = seq(2, 10, 1))
 
 ### SVM for N
 svm_all_n <- train(n ~., data = train_df[, c(targetN, estimators)], 
@@ -140,16 +137,23 @@ svm_all_n <- train(n ~., data = train_df[, c(targetN, estimators)],
                   trControl = myControl, 
                   preProcess = c("center", "scale"),
                   importance = T)
+stopCluster(cls)
+tictoc::toc()
 svm_all_n
 plot(svm_all_n)
 
 ### SVM for ADF
+tictoc::tic("svm_all_adf")
+cls = makeCluster(detectCores()-1)
+registerDoParallel(cls)
 svm_all_adf <- train(adf ~., data = train_df[, c(targetADF, estimators)], 
                     method = "svmRadial", metric = metric, 
                     tuneGrid = tunegrid, 
                     trControl=myControl, 
                     preProcess = c("center", "scale"),
                     importance = T)
+stopCluster(cls)
+tictoc::toc()
 svm_all_adf
 plot(svm_all_adf)
 
