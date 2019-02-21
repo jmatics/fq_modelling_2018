@@ -40,7 +40,7 @@ obs_pred_plot <- function(model, df, estimators, target, plot = TRUE, title = FA
       geom_abline(mapping = NULL, data = NULL, slope = 0, intercept = 0, 
                   linetype = "twodash", color = "black") +
       ggthemes::theme_few(base_family = "Helvetica") + 
-      coord_fixed(ratio = 1) +
+      coord_fixed(ratio = 0.2) +
       jcolors::scale_fill_jcolors(palette = "pal3", name = "Location") +
       labs(x="Predicted", 
            y="Residuals",

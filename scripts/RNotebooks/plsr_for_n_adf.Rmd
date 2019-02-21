@@ -96,16 +96,16 @@ Each PLSR model will calibrate and validate **100 times** based on randomly sele
 
 ```{r}
 # Populate random 100 seed value vector between 1 and 99999
-seedVec <- sample(c(1:99999), 100, replace=FALSE)
+pls_seedVec <- sample(c(1:99999), 100, replace=FALSE)
 
-train_list <- vector("list", 100) 
-test_list <- vector("list", 100)
+pls_train_list <- vector("list", 100) 
+pls_test_list <- vector("list", 100)
 
-plsFit_n <- vector("list", 100)
-op_n <- vector("list", 100)
+pls_fit_n <- vector("list", 100)
+pls_op_n <- vector("list", 100)
 
-plsFit_adf <- vector("list", 100)
-op_adf <- vector("list", 100)
+pls_fit_adf <- vector("list", 100)
+pls_op_adf <- vector("list", 100)
 ```
 
 ### Define necessray variables for cal/val
@@ -128,7 +128,7 @@ myControl <- trainControl(
 )
 
 metric <- "RMSE"
-tunegrid <- expand.grid(.ncomp = c(1:20))
+pls_tunegrid <- expand.grid(.ncomp = c(1:20))
 ```
 
 ### Cal/Val process 100 times
@@ -140,8 +140,8 @@ cls = makeCluster(detectCores() - 1)
 registerDoParallel(cls)
 
 tictoc::tic("forLoop")
-for (k in 1:length(seedVec)) {
-  set.seed(seedVec[k])
+for (k in 1:length(pls_seedVec)) {
+  set.seed(pls_seedVec[k])
   
   # Data spliting
   split_sample <-
@@ -153,45 +153,48 @@ for (k in 1:length(seedVec)) {
       list_out = F
     ) %>% data.frame()
   
-  train_list[[k]] <-
+  pls_train_list[[k]] <-
     split_sample %>% dplyr::filter(.partitions == 1) 
   
-  test_list[[k]] <-
+  pls_test_list[[k]] <-
     split_sample %>% dplyr::filter(.partitions == 2)
   
-  test_list[[k]]$seed <- rep(seedVec[k], dim(test_list[[k]])[1])
+  pls_train_list[[k]]$seed <- rep(pls_seedVec[k], dim(pls_train_list[[k]])[1])
+  pls_test_list[[k]]$seed <- rep(pls_seedVec[k], dim(pls_test_list[[k]])[1])
   
   # Train PLSR model for N %
-  plsFit_n[[k]] <-
+  pls_fit_n[[k]] <-
     train(
       n ~ .,
-      data = train_list[[k]][, c(targetN, estimators)],
+      data = pls_train_list[[k]][, c(targetN, estimators)],
       method = "pls",
       metric = metric,
-      tuneGrid = tunegrid,
+      tuneGrid = pls_tunegrid,
       trControl = myControl,
       preProcess = c("center", "scale")
     )
   
   # Train PLSR model for ADF %
-  plsFit_adf[[k]] <-
+  pls_fit_adf[[k]] <-
     train(
       adf ~ .,
-      data = train_list[[k]][, c(targetADF, estimators)],
+      data = pls_train_list[[k]][, c(targetADF, estimators)],
       method = "pls",
       metric = metric,
-      tuneGrid = tunegrid,
+      tuneGrid = pls_tunegrid,
       trControl = myControl,
       preProcess = c("center", "scale")
     )
   
   # Test PLSR model for N %
-  op_n[[k]] <- postResample(test_list[[k]][, targetN],
-                                predict(plsFit_n[[k]], newdata=test_list[[k]][, estimators]))
+  pls_op_n[[k]] <- postResample(pls_test_list[[k]][, targetN],
+                                predict(pls_fit_n[[k]], 
+                                        newdata =pls_test_list[[k]][, estimators]))
   
   # Test PLSR model for ADF %
-  op_adf[[k]] <- postResample(test_list[[k]][, targetADF],
-                            predict(plsFit_adf[[k]], newdata=test_list[[k]][, estimators]))
+  pls_op_adf[[k]] <- postResample(pls_test_list[[k]][, targetADF],
+                            predict(pls_fit_adf[[k]], 
+                                    newdata = pls_test_list[[k]][, estimators]))
   
 }
 tictoc::toc()
@@ -202,16 +205,16 @@ tictoc::toc()
 ```{r}
 # Compute mean N (%) for each test data subset to calculate rRMSEP
 
-mean_n <- numeric()
+pls_mean_n <- numeric()
 for(i in 1:100){
-  mean_n[i] <- mean(test_list[[i]][, targetN])
+  pls_mean_n[i] <- mean(pls_test_list[[i]][, targetN])
 }
 
 # Compute mean ADF (%) for each test data subset to calculate rRMSEP
 
-mean_adf <- numeric()
+pls_mean_adf <- numeric()
 for (i in 1:100) {
-  mean_adf[i] <- mean(test_list[[i]][, targetADF])
+  pls_mean_adf[i] <- mean(pls_test_list[[i]][, targetADF])
 }
 ```
 
@@ -219,11 +222,11 @@ for (i in 1:100) {
 
 ```{r}
 # Plots for best tune parameter (No. of components)
-best_tune_df <- data.frame("comp" = c(unlist(lapply(plsFit_n,"[[","bestTune")),
-                                      unlist(lapply(plsFit_adf,"[[","bestTune"))),
+pls_best_tune_df <- data.frame("comp" = c(unlist(lapply(pls_fit_n,"[[","bestTune")),
+                                      unlist(lapply(pls_fit_adf,"[[","bestTune"))),
                            "model" = c(rep("N", 100), rep("ADF", 100)))
 
-ggplot(data = best_tune_df, aes(x = model, y = comp, fill = model)) + 
+ggplot(data = pls_best_tune_df, aes(x = model, y = comp, fill = model)) + 
   geom_boxplot() +
   theme_bw(base_size = 12, base_family = "Helvetica") +
   labs(y = "No. of components",
@@ -241,11 +244,11 @@ ggplot(data = best_tune_df, aes(x = model, y = comp, fill = model)) +
 ```
 ```{r}
 # rRMSEP plots
-best_rmse_df <- data.frame("rmse" = c((unlist(lapply(op_n,"[[","RMSE"))/mean_n)*100,
-                                      (unlist(lapply(op_adf,"[[","RMSE"))/mean_adf)*100),
+pls_best_rmse_df <- data.frame("rmse" = c((unlist(lapply(pls_op_n,"[[","RMSE"))/pls_mean_n)*100,
+                                      (unlist(lapply(pls_op_adf,"[[","RMSE"))/pls_mean_adf)*100),
                            "model" = c(rep("N", 100), rep("ADF", 100)))
 
-ggplot(data = best_rmse_df, aes(x = model, y = rmse, fill = model)) + 
+ggplot(data = pls_best_rmse_df, aes(x = model, y = rmse, fill = model)) + 
   geom_boxplot() +
   theme_bw(base_size = 12, base_family = "Helvetica") +
   labs(y = "rRMSEP (%)",
@@ -267,25 +270,25 @@ ggplot(data = best_rmse_df, aes(x = model, y = rmse, fill = model)) +
 ### Identify best train/test subset
 
 ```{r}
-best_k_for_n <- which.min(unlist(lapply(op_n,"[[","RMSE")))
-best_k_for_adf <- which.min(unlist(lapply(op_adf,"[[","RMSE")))
+pls_best_k_for_n <- which.min(unlist(lapply(pls_op_n,"[[","RMSE")))
+pls_best_k_for_adf <- which.min(unlist(lapply(pls_op_adf,"[[","RMSE")))
 ```
 
 ### Best PLSR for N estimation with best train/test subset
 
 ```{r}
-set.seed(seedVec[best_k_for_n])
+set.seed(pls_seedVec[pls_best_k_for_n])
 
-pls_best_n <- plsFit_n[[best_k_for_n]]
+pls_best_fit_n <- pls_fit_n[[pls_best_k_for_n]]
 
 
-save(best_k_for_n, pls_best_n, file = "D:/Data_Processing/2018/fq_modelling_2018/output/models/plsr_best_N.RData")
+save(pls_best_k_for_n, pls_best_fit_n, file = "D:/Data_Processing/2018/fq_modelling_2018/output/models/plsr_best_N.RData")
 
-print(pls_best_n)
-plot(pls_best_n)
+print(pls_best_fit_n)
+plot(pls_best_fit_n)
 ```
 ```{r, warning=FALSE, message=FALSE}
-plot(varImp(pls_best_n), 10, 
+plot(varImp(pls_best_fit_n), 10, 
      main = "PLSR for N (%) estimation - Important variables for prediction")
 ```
 
@@ -293,7 +296,7 @@ plot(varImp(pls_best_n), 10,
 
 source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
 
-obs_pred_plot(pls_best_n, test_list[[best_k_for_n]], 
+obs_pred_plot(pls_best_fit_n, pls_test_list[[pls_best_k_for_n]], 
               estimators, targetN, plot = TRUE, 
               title = "N (%) estimation model with PLSR")
 ```
@@ -302,17 +305,17 @@ obs_pred_plot(pls_best_n, test_list[[best_k_for_n]],
 ### Best PLSR for ADF estimation with best train/test subset
 
 ```{r}
-set.seed(seedVec[best_k_for_adf])
+set.seed(pls_seedVec[pls_best_k_for_adf])
 
-pls_best_adf <- plsFit_adf[[best_k_for_adf]]
+pls_best_fit_adf <- pls_fit_adf[[pls_best_k_for_adf]]
 
-save(best_k_for_adf, pls_best_adf, file = "D:/Data_Processing/2018/fq_modelling_2018/output/models/plsr_best_ADF.RData")
+save(pls_best_k_for_adf, pls_best_fit_adf, file = "D:/Data_Processing/2018/fq_modelling_2018/output/models/plsr_best_ADF.RData")
 
-print(pls_best_adf)
-plot(pls_best_adf)
+print(pls_best_fit_adf)
+plot(pls_best_fit_adf)
 ```
 ```{r}
-plot(varImp(pls_best_adf), 10, 
+plot(varImp(pls_best_fit_adf), 10, 
      main = "PLSR for ADF (%) estimation - Important variables for prediction")
 ```
 
@@ -320,7 +323,7 @@ plot(varImp(pls_best_adf), 10,
 
 source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
 
-obs_pred_plot(pls_best_adf, test_list[[best_k_for_adf]], 
+obs_pred_plot(pls_best_fit_adf, pls_test_list[[pls_best_k_for_adf]], 
               estimators, targetADF, plot = TRUE, 
               title = "ADF (%) estimation model with PLSR")
 ```

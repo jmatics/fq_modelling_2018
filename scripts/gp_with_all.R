@@ -1,6 +1,6 @@
 ###############################################
 # 13.02.2018
-# Forage qualitz modelling with ML
+# Forage qualitz modelling with GPR
 # JW
 ###############################################
 
@@ -44,8 +44,8 @@ ggplot(all_df, aes (x = doy, y = n, fill = field_id)) +
   geom_boxplot(alpha = 0.75) +
   theme_bw(base_size = 12, base_family = "Lucida") +
   jcolors::scale_fill_jcolors("pal7",
-                    name = "Grassland ID", 
-                    labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL")) +
+                              name = "Grassland ID", 
+                              labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL")) +
   labs(x = "Julian date (DOY)",
        y = "N (%) per dry matter",
        caption = "Nitrogen (N) concentration data (all)") +
@@ -104,9 +104,8 @@ table(test_df$field_id)
 estimators <- c(5:122)
 
 ## Coulmn index for each targets (dependent variables)
-targetN <- 130
-targetC <- 131
-targetADF <- 133
+targetN <- 131
+targetADF <- 134
 
 
 # 3. Model calibration (training)
@@ -119,64 +118,73 @@ registerDoParallel(cls)
 
 ## Define control parameters
 myControl <- trainControl(method="repeatedcv", 
-                        number=10, 
-                        repeats=5,
-                        returnResamp = "all",
-                        allowParallel = TRUE)
+                          number=10, 
+                          repeats=5,
+                          returnResamp = "all",
+                          allowParallel = TRUE)
 
 set.seed(777)
 
-## 3.1 PLSR
+## 3.1 GPR
 metric <- "RMSE"
-tunegrid <- expand.grid(.ncomp=c(1:12))
+tunegrid <- tunegrid<- expand.grid(sigma = c(seq(0.01, 0.1, 0.005)))
 
-### PLS for N
-pls_all_n <- train(n ~., data = train_df[, c(targetN, estimators)], 
-                   method = "pls", metric = metric, 
+### GP for N
+gp_all_n <- train(n ~., data = train_df[, c(targetN, estimators)], 
+                   method = "gaussprRadial", metric = metric, 
                    tuneGrid = tunegrid, 
-                   trControl=myControl, 
-                   preProcess = c("center", "scale"))
-pls_all_n
+                   trControl = myControl, 
+                   preProcess = c("center", "scale"),
+                   importance = T)
+stopCluster(cls)
+gp_all_n
+plot(gp_all_n)
 
-### PLS for ADF
-pls_all_adf <- train(adf ~., data = train_df[, c(targetADF, estimators)], 
-                   method = "pls", metric = metric, 
-                   tuneGrid = tunegrid, 
-                   trControl=myControl, 
-                   preProcess = c("center", "scale"))
-pls_all_adf
+### GP for ADF
+cls = makeCluster(detectCores()-1)
+registerDoParallel(cls)
+gp_all_adf <- train(adf ~., data = train_df[, c(targetADF, estimators)], 
+                     method = "gaussprRadial", metric = metric, 
+                     tuneGrid = tunegrid, 
+                     trControl = myControl, 
+                     preProcess = c("center", "scale"),
+                     importance = T)
+stopCluster(cls)
 
-save(pls_all_n, pls_all_adf, file = "./output/models/plsr_model_for_N_ADF.RData")
+gp_all_adf
+plot(gp_all_adf)
+
+save(gp_all_n, gp_all_adf, file = "./output/models/gpr_model_for_N_ADF.RData")
 timestamp()
 ### Visulaise calibrated models
 
-plot(varImp(pls_all_n), 10, main = "N_PLSR")
-plot(varImp(pls_all_adf), 10, main = "ADF_PLSR")
+plot(varImp(gp_all_n), 10, main = "N_GPR")
+plot(varImp(gp_all_adf), 10, main = "ADF_GPR")
 
 
-pls_all_compare <- resamples(list("N_PLSR" = pls_all_n,
-                                  "ADF_PLSR" = pls_all_adf))
-summary(pls_all_compare)
+gp_all_compare <- resamples(list("N_GPR" = gp_all_n,
+                                  "ADF_GPR" = gp_all_adf))
+summary(gp_all_compare)
 
 
-bwplot(pls_all_compare, scales=list(tck=c(1,0), x=list(cex=1.5), y=list(cex=1.5)))
-
+bwplot(gp_all_compare, scales=list(tck=c(1,0), x=list(cex=1.5), y=list(cex=1.5)))
+dotplot(gp_all_compare, scales=list(tck=c(1,0), x=list(cex=1.5), y=list(cex=1.5)))
 
 
 # 4. Model validation
 
-source("./obs_pred_plot.R")
+source("./funs/obs_pred_plot.R")
 
-obs_pred_plot(pls_all_n, test_df, 
+obs_pred_plot(gp_all_n, test_df, 
               estimators, targetN, plot = TRUE, 
-              title = "N (%) estimation model with PLSR")
+              title = "N (%) estimation model with GPR")
 
 
-obs_pred_plot(pls_all_adf, test_df, 
+obs_pred_plot(gp_all_adf, test_df, 
               estimators, targetADF, plot = TRUE, 
-              title = "ADF (%) estimation model with PLSR")
-# densityplot(pls_all_n, comps = 1:3)
-#  scoreplot(pls_all_adf$finalModel, comps = 1:3)  
-#  loadingplot(pls_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
-#  corrplot(pls_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
-#  coefplot(pls_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
+              title = "ADF (%) estimation model with GPR")
+# densityplot(gp_all_n, comps = 1:3)
+#  scoreplot(gp_all_adf$finalModel, comps = 1:3)  
+#  loadingplot(gp_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
+#  corrplot(gp_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
+#  coefplot(gp_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
