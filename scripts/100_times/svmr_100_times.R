@@ -112,7 +112,7 @@ myControl <- trainControl(
 
 metric <- "RMSE"
 svm_tunegrid <- expand.grid(sigma = seq(0.01, 0.05, 0.005), 
-                            C = seq(2, 10, 1))
+                            C = seq(2, 12, 1))
 
 ### Cal/Val process 100 times
 
@@ -202,11 +202,13 @@ for (i in 1:100) {
 ### Model cal/val output plots
 
 # Plots for best tune parameter (No. of components)
-svm_best_tune_df <- data.frame("comp" = c(unlist(lapply(svm_fit_n,"[[","bestTune")),
-                                         unlist(lapply(svm_fit_adf,"[[","bestTune"))),
-                              "model" = c(rep("N", 100), rep("ADF", 100)))
+svm_best_tune_df <- data.frame("comp_sigma" = c(unlist(lapply(svm_fit_n,"[[","bestTune"))[seq(1,100,2)], unlist(lapply(svm_fit_adf,"[[","bestTune"))[seq(1,100,2)]),
+                               "comp_cost" = c(unlist(lapply(svm_fit_n,"[[","bestTune"))[seq(2,100,2)], unlist(lapply(svm_fit_adf,"[[","bestTune"))[seq(2,100,2)]),
+                              "model" = c(rep("N", 100), rep("ADF", 100),
+                                          rep("N", 100), rep("ADF", 100)),
+                              "tune" = c(rep("Sigma", 200), rep("Cost", 200))) 
 
-ggplot(data = svm_best_tune_df, aes(x = model, y = comp, fill = model)) + 
+sigma_plot <- ggplot(data = svm_best_tune_df, aes(x = model, y = comp_sigma, fill = model)) + 
   geom_boxplot() +
   theme_bw(base_size = 12, base_family = "Helvetica") +
   labs(y = "Sigma",
@@ -221,6 +223,24 @@ ggplot(data = svm_best_tune_df, aes(x = model, y = comp, fill = model)) +
     plot.caption = element_text(size = 11, face = "italic", hjust = 1),
     legend.position = "bottom"
   )
+  
+cost_plot <- ggplot(data = svm_best_tune_df, aes(x = model, y = comp_cost, fill = model)) + 
+    geom_boxplot() +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+    labs(y = "Cost",
+         x = "Model variable",
+         caption = "Best tune parameter (Cost) for SVMR models") +
+    scale_fill_manual(values = c("#42858C", "#E48F1B"),
+                      name = "Forage quality parameter", 
+                      labels = c("ADF (%)", "Nitrogen (%)")) +
+    theme(
+      axis.text = element_text(size = 12),
+      axis.title = element_text(size = 14),
+      plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+      legend.position = "bottom"
+    )
+
+cowplot::plot_grid(sigma_plot, cost_plot, nrow = 1, ncol = 2)
 
 # rRMSEP plots
 svm_best_rmse_df <- data.frame("rmse" = c((unlist(lapply(svm_op_n,"[[","RMSE"))/svm_mean_n)*100,
