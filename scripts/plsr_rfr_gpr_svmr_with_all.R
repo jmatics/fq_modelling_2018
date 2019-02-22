@@ -91,8 +91,8 @@ rf_tunegrid_adf <- expand.grid(.mtry=c(14))
 gp_tunegrid_n <- expand.grid(sigma=c(0.045))
 gp_tunegrid_adf <- expand.grid(sigma=c(0.040))
 
-svm_tunegrid_n <- expand.grid(sigma=c(0.05), C=c(12))
-svm_tunegrid_adf <- expand.grid(sigma=c(0.03), C=c(4))
+svm_tunegrid_n <- expand.grid(sigma=c(0.03), C=c(12))
+svm_tunegrid_adf <- expand.grid(sigma=c(0.03), C=c(12))
 
 ## Run calibration (training)
 
@@ -220,7 +220,7 @@ models_for_adf <- resamples(list("PLSR-ADF" = pls_adf,
 summary(models_for_adf)
 bwplot(models_for_adf, scales=list(tck=c(1,0), x=list(cex=1.5), y=list(cex=1.5)))
 
-save(pls_n, pls_adf, rf_n,rf_adf, gp_n, gp_adf, svm_n, svm_adf, file = "./output/pls_rfr_gpr_svmr_for_n_adf.RData")
+save(pls_n, pls_adf, rf_n,rf_adf, gp_n, gp_adf, svm_n, svm_adf, file = "./output/models/pls_rfr_gpr_svmr_for_n_adf.RData")
 
 # 5. Model validation
 

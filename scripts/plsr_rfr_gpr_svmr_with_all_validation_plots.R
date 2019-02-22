@@ -5,6 +5,7 @@
 
 library(ggplot2)
 library(caret)
+library(dplyr)
 
 op_df <- read.csv("./output/models/plsr_rfr_gpr_svmr_op.csv")
 
@@ -204,7 +205,7 @@ cowplot::plot_grid(pls_adf_plot, rf_adf_plot, gp_adf_plot, svm_adf_plot,
 
 library(plotrix)
 
-oldpar <- taylor.diagram(op_df$n, op_df$n, pch = 19, main = "N (%) estimation")
+oldpar <- taylor.diagram(op_df$n, op_df$n, pch = 19, main = "N (%DM) estimation")
 taylor.diagram(op_df$n, op_df$pls_n_pred, add = TRUE, col="#9449d2", pch = 19)
 taylor.diagram(op_df$n, op_df$rf_n_pred, add = TRUE, col="#B1740F", pch = 19)
 taylor.diagram(op_df$n, op_df$gp_n_pred, add = TRUE, col="blue", pch = 19)
@@ -214,7 +215,7 @@ legend(0.9, 1.3, legend=c("Observed","PLSR","RFR","GPR","SVMR"),
        pch = 19, col = c("red", "#9449d2", "#B1740F", "blue", "#08585A"))
 par(oldpar)
 
-oldpar <- taylor.diagram(op_df$adf, op_df$adf, pch = 19, main = "ADF (%) estimation")
+oldpar <- taylor.diagram(op_df$adf, op_df$adf, pch = 19, main = "ADF (%DM) estimation")
 taylor.diagram(op_df$adf, op_df$pls_adf_pred, add = TRUE, col="#9449d2", pch = 19)
 taylor.diagram(op_df$adf, op_df$rf_adf_pred, add = TRUE, col="#B1740F", pch = 19)
 taylor.diagram(op_df$adf, op_df$gp_adf_pred, add = TRUE, col="blue", pch = 19)
@@ -223,3 +224,73 @@ lpos <- 1.5*sd(op_df$adf)
 legend(5.7, 7.3, legend=c("Observed","PLSR","RFR","GPR","SVMR"),
        pch = 19, col = c("red", "#9449d2", "#B1740F", "blue", "#08585A"))
 par(oldpar)
+
+
+## Residual check
+
+op_df$pls_n_delta <- op_df$n - op_df$pls_n_pred
+op_df$pls_adf_delta <- op_df$adf - op_df$pls_adf_pred
+
+op_df$rf_n_delta <- op_df$n - op_df$rf_n_pred
+op_df$rf_adf_delta <- op_df$adf - op_df$rf_adf_pred
+
+op_df$gp_n_delta <- op_df$n - op_df$gp_n_pred
+op_df$gp_adf_delta <- op_df$adf - op_df$gp_adf_pred
+
+op_df$svm_n_delta <- op_df$n - op_df$svm_n_pred
+op_df$svm_adf_delta <- op_df$adf - op_df$svm_adf_pred
+
+### Boxplots for residuals
+
+### Residuals vs field id
+op_df$field_id <- factor(op_df$field_id, 
+                         levels = c("g1", "g2", "g3", "g4", "BG", "BGL", "GH", "GHL"),
+                         labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL"))
+
+res_vs_fid_n <- ggplot(data = op_df %>% 
+         dplyr::select(field_id, names(op_df)[grep("*n_delta", names(op_df))]) %>% 
+         reshape2::melt(), aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot() +
+  facet_grid(~ field_id) +
+  theme_bw(base_size = 12) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "#E48F1B") +
+  jcolors::scale_fill_jcolors("pal7",
+                              name = "Model", 
+                              labels = c("PLSR", "RFR", "GPR", "SVMR")) +
+  labs(y = "Residuals",
+       x = "Model",
+       caption = "Residuals for N (%DM) estimation") +
+  scale_x_discrete(labels = c("pls_n_delta" = "PLSR", "rf_n_delta" = "RFR",
+                              "gp_n_delta" = "GPR", "svm_n_delta" = "SVMR")) + 
+  theme( 
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    axis.text.x = element_text(angle = 90),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+
+res_vs_fid_adf <- ggplot(data = op_df %>% 
+         dplyr::select(field_id, names(op_df)[grep("*adf_delta", names(op_df))]) %>% 
+         reshape2::melt(), aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot() +
+  facet_grid(~ field_id) +
+  theme_bw(base_size = 12) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "#42858C") +
+  jcolors::scale_fill_jcolors("pal7",
+                              name = "Model", 
+                              labels = c("PLSR", "RFR", "GPR", "SVMR")) +
+  labs(y = "Residuals",
+       x = "Model",
+       caption = "Residuals for ADF (%DM) estimation") +
+  scale_x_discrete(labels = c("pls_adf_delta" = "PLSR", "rf_adf_delta" = "RFR",
+                              "gp_adf_delta" = "GPR", "svm_adf_delta" = "SVMR")) +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    axis.text.x = element_text(angle = 90),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+
+cowplot::plot_grid(res_vs_fid_n, res_vs_fid_adf, nrow = 2, ncol = 1)
