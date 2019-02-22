@@ -19,6 +19,8 @@ library(readr)
 library(ppls)
 library(tibble)
 library(kableExtra)
+
+windowsFonts(Helvetica=windowsFont("Helvetica-Regular"))
 ```
 
 # 1. Summary of the grasslands

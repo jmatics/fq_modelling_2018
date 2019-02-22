@@ -1,0 +1,227 @@
+---
+title: "Grassland forage quality estimation with UAV-borne hyperspectral data"
+author: "Jayan Wijesingha"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: 
+  slidy_presentation:
+    footer: "(C) jayan.wijesingha@uni-kassel.de"
+    #css: ./stylesheets/css_slidy.css
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(data.table)
+library(dplyr)
+library(hsdar)
+library(ggplot2)
+library(caret)
+library(purrr)
+library(readr)
+library(ppls)
+library(tibble)
+library(kableExtra)
+
+windowsFonts(Helvetica=windowsFont("Helvetica-Regular"))
+```
+
+## Summary of the grasslands
+
+
+```{r grassland info, echo=FALSE, results='asis'}
+
+gl_df <- data.frame(
+  field_id = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL"),
+  area = c(rep("Werra-Meißner district", 4), rep("Biosphere Reserve Rhön", 4)),
+  veg_type = c("Mountain hay meadow", "*Nardus stricta* grassland",
+               "Lowland hay meadow", "Seeded grassland", 
+               "*Nardus stricta* grassland", 
+               "Former *Nardus stricta* grassland invaded by *Lupinus polyphyllus*",
+               "Mountain hay meadow",
+               "Former Mountain hay meadow invaded by *Lupinus polyphyllus*"
+  )
+  )
+
+kable(gl_df, col.names = c("Field ID", "Area", "Vegetation Type")) %>%
+  kable_styling(bootstrap_options = c("striped"), full_width = T)
+
+```
+
+
+## N (%) Concentration Data
+
+```{r read df, include=FALSE}
+## Read WIZ data
+wiz_df <-  fread("D:/Data_Processing/2018/fq_modelling_2018/output_wiz/hs_all_nrm_df_wiz.csv", header = TRUE)
+wiz_df$source <- rep("Witzenhausen", dim(wiz_df)[1])
+## Read Rhön data
+dsb_df <-
+  read.csv("D:/Data_Processing/2018/fq_modelling_2018/output_dsb/hs_all_nrm_df_dsb.csv", header = TRUE)
+dsb_df$source <- rep("Rhön", dim(dsb_df)[1])
+## merging two data sets
+all_df <- rbind(wiz_df, dsb_df)
+all_df$doy <- factor(all_df$doy)
+```
+
+```{r Boxplot N, out.width='60%', fig.align='center'}
+ggplot(all_df, aes (x = doy, y = n, fill = field_id)) + 
+  geom_boxplot(alpha = 0.75) +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+  jcolors::scale_fill_jcolors("pal7",
+                    name = "Grassland ID", 
+                    labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL")) +
+  labs(x = "Julian date (DOY)",
+       y = "N (%) per dry matter",
+       caption = "Nitrogen (N) concentration data (all)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+## N (%) estimation with different machine learning algorithms
+
+### Partial least squares regression (PLSR)
+
+```{r N PLSR load, include=FALSE}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/100_times/plsr_100.RData")
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+```
+
+```{r N PLSR plot, fig.align='center', out.width='50%'}
+obs_pred_plot(pls_best_fit_n, pls_test_list[[pls_best_k_for_n]], 
+              estimators, targetN, plot = TRUE, 
+              title = "N (%) estimation model with PLSR")
+rm(list = ls()[grep("pls", ls())])
+```
+
+### Random forest regression (RFR)
+
+```{r N RFR load, include=FALSE}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/100_times/rfr_100.RData")
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+```
+
+```{r N RFR plot, fig.align='center', out.width='50%'}
+obs_pred_plot(rf_best_fit_n, rf_test_list[[rf_best_k_for_n]], 
+              estimators, targetN, plot = TRUE, 
+              title = "N (%) estimation model with RFR")
+rm(list = ls()[grep("rf", ls())])
+```
+
+### Gaussian process regression (GPR)
+
+```{r N GPR load, include=FALSE}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/100_times/gpr_100.RData")
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+```
+
+```{r N GPR plot, fig.align='center', out.width='50%'}
+obs_pred_plot(gp_best_fit_n, gp_test_list[[gp_best_k_for_n]], 
+              estimators, targetN, plot = TRUE, 
+              title = "N (%) estimation model with GPR")
+rm(list = ls()[grep("gp", ls())])
+```
+
+### Support vector machine regression (SVMR)
+
+```{r N SVMR load, include=FALSE}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/100_times/svmr_100.RData")
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+```
+
+```{r N SVMR plot, fig.align='center', out.width='50%'}
+obs_pred_plot(svm_best_fit_n, svm_test_list[[svm_best_k_for_n]], 
+              estimators, targetN, plot = TRUE, 
+              title = "N (%) estimation model with SVMR")
+rm(list = ls()[grep("svm", ls())])
+```
+
+## ADF (%) Concentration Data
+
+```{r Boxplot ADF, out.width='60%', fig.align='center'}
+ggplot(all_df, aes (x = doy, y = adf, fill = field_id)) + 
+  geom_boxplot(alpha = 0.75) +
+  theme_bw(base_size = 12, base_family = "Helvetica") +
+  jcolors::scale_fill_jcolors("pal7",
+                    name = "Grassland ID", 
+                    labels = c("G1a", "G1b", "G2", "G3", "BG", "BGL", "GH", "GHL")) +
+  labs(x = "Julian date (DOY)",
+       y = "ADF (%) per dry matter",
+       caption = "Acid detergent fiber (ADF) concentration data (all)") +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.caption = element_text(size = 11, face = "italic", hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+## ADF (%) estimation with different machine learning algorithms
+
+### Partial least squares regression (PLSR)
+
+```{r ADF PLSR load, include=FALSE}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/100_times/plsr_100.RData")
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+```
+
+```{r ADF PLSR plot, fig.align='center', out.width='50%'}
+obs_pred_plot(pls_best_fit_adf, pls_test_list[[pls_best_k_for_adf]], 
+              estimators, targetADF, plot = TRUE, 
+              title = "ADF (%) estimation model with PLSR")
+rm(list = ls()[grep("pls", ls())])
+```
+
+### Random forest regression (RFR)
+
+```{r ADF RFR load, include=FALSE}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/100_times/rfr_100.RData")
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+```
+
+```{r ADF RFR plot, fig.align='center', out.width='50%'}
+obs_pred_plot(rf_best_fit_adf, rf_test_list[[rf_best_k_for_adf]], 
+              estimators, targetADF, plot = TRUE, 
+              title = "ADF (%) estimation model with RFR")
+rm(list = ls()[grep("rf", ls())])
+```
+
+### Gaussian process regression (GPR)
+
+```{r ADF GPR load, include=FALSE}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/100_times/gpr_100.RData")
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+```
+
+```{r ADF GPR plot, fig.align='center', out.width='50%'}
+obs_pred_plot(gp_best_fit_adf, gp_test_list[[gp_best_k_for_adf]], 
+              estimators, targetADF, plot = TRUE, 
+              title = "ADF (%) estimation model with GPR")
+rm(list = ls()[grep("gp", ls())])
+```
+
+### Support vector machine regression (SVMR)
+
+```{r ADF SVMR load, include=FALSE}
+load("D:/Data_Processing/2018/fq_modelling_2018/output/models/100_times/svmr_100.RData")
+
+source("D:/Data_Processing/2018/fq_modelling_2018/funs/obs_pred_plot.R")
+```
+
+```{r ADF SVMR plot, fig.align='center', out.width='50%'}
+obs_pred_plot(svm_best_fit_adf, svm_test_list[[svm_best_k_for_adf]], 
+              estimators, targetADF, plot = TRUE, 
+              title = "ADF (%) estimation model with SVMR")
+rm(list = ls()[grep("svm", ls())])
+```
+

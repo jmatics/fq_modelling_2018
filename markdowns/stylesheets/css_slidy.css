@@ -1,0 +1,15 @@
+h1.title{
+  font-size: 38px;
+  color: #A60040;
+  font-weight: bold;
+}
+
+h2,h3,h4,h5,h6{
+  color: #A60040;
+  font-weight: 600;
+}
+
+body{
+  font-family: helvetica;
+  font-weight: 300;
+}
