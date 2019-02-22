@@ -114,7 +114,7 @@ pls_n <- train(
 )
 
 pls_adf <- train(
-  n ~ .,
+  adf ~ .,
   data = train_df[, c(targetADF, estimators)],
   method = "pls",
   metric = metric,
@@ -137,7 +137,7 @@ rf_n <- train(
 )
 
 rf_adf <- train(
-  n ~ .,
+  adf ~ .,
   data = train_df[, c(targetADF, estimators)],
   method = "rf",
   metric = metric,
@@ -163,7 +163,7 @@ gp_n <-
 
 gp_adf <-
   train(
-    n ~ .,
+    adf ~ .,
     data = train_df[, c(targetADF, estimators)],
     method = "gaussprRadial",
     metric = metric,
@@ -189,7 +189,7 @@ svm_n <-
 
 svm_adf <-
   train(
-    n ~ .,
+    adf ~ .,
     data = train_df[, c(targetADF, estimators)],
     method = "svmRadial",
     metric = metric,
@@ -219,6 +219,8 @@ models_for_adf <- resamples(list("PLSR-ADF" = pls_adf,
                                "SVMR-ADF" = svm_adf))
 summary(models_for_adf)
 bwplot(models_for_adf, scales=list(tck=c(1,0), x=list(cex=1.5), y=list(cex=1.5)))
+
+save(pls_n, pls_adf, rf_n,rf_adf, gp_n, gp_adf, svm_n, svm_adf, file = "./output/pls_rfr_gpr_svmr_for_n_adf.RData")
 
 # 5. Model validation
 
@@ -254,3 +256,5 @@ op_df <- cbind(test_df[-(estimators)], pls_n_pred, pls_adf_pred,
                rf_n_pred, rf_adf_pred,
                gp_n_pred, gp_adf_pred,
                svm_n_pred, svm_adf_pred)
+
+write.csv(op_df, "./output/models/plsr_rfr_gpr_svmr_op.csv", row.names = FALSE)
