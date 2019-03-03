@@ -23,7 +23,7 @@ plot_n_imp <- ggplot(imp_n_df_melt %>% dplyr::filter(value > 60),
   facet_grid(~ variable, labeller = model_n_label) +
   theme_bw(base_size = 12, base_family = "Helvetica") +
   labs(x = "Wavelength (nm)",
-       y = "Overall score for importance of prediction",
+       y = "Variable importance score",
        caption = "Important wavelengths for N (%DM) prediction with more than 60 score") +
   theme(
     axis.text = element_text(size = 12),
@@ -55,7 +55,7 @@ plot_adf_imp <- ggplot(imp_adf_df_melt %>% dplyr::filter(value > 60),
   facet_grid(~ variable, labeller = model_adf_label) +
   theme_bw(base_size = 12, base_family = "Helvetica") +
   labs(x = "Wavelength (nm)",
-       y = "Overall score for importance of prediction",
+       y = "Variable importance score",
        caption = "Important wavelengths for ADF (%DM) prediction with more than 60 score") +
   theme(
     axis.text = element_text(size = 12),
@@ -64,4 +64,7 @@ plot_adf_imp <- ggplot(imp_adf_df_melt %>% dplyr::filter(value > 60),
     legend.position = "bottom"
   )
 
+png(filename="./plots/model_varImp_n_adf.png", type="cairo",
+    width = 6600, height = 3300, res = 600)
 cowplot::plot_grid(plot_n_imp, plot_adf_imp, nrow = 2, ncol = 1)
+dev.off()

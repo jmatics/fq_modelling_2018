@@ -34,17 +34,21 @@ pls_n_plot <- ggplot(op_df,
               linetype = "twodash", color = "black") +
   ggthemes::theme_few(base_family = "Helvetica") + 
   coord_fixed(ratio = 1) +
-  jcolors::scale_color_jcolors(palette = "pal3") +
+  jcolors::scale_color_jcolors(palette = "pal3", 
+                               name = "",
+                               labels = c("Rhön", "WIZ")) +
   labs(x="Predicted", 
        y="Observed",
+       title = "PLSR",
        caption=paste("R² = ", round(post_resample_pls_n[2], 2), ",   ",
                      "rRMSEP = ", round(post_resample_pls_n[1]/mean_n, 2)*100, 
-                     " %", "\n", "PLSR", sep = "")) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=13),
-        legend.title = element_text(size=12, face="bold"),
+                     " %", sep = "")) +
+  theme(axis.text = element_text(size=13),
+        axis.title = element_text(size=14),
+        legend.title = element_text(size=13, face="bold"),
         legend.text = element_text(size=11),
-        plot.caption=element_text(size=11, face="italic", hjust=1),
+        plot.caption = element_text(size=13, face="italic", hjust=1),
+        plot.title = element_text(size=15, face="bold"),
         legend.position = "top")
 
 rf_n_plot <- ggplot(op_df, 
@@ -55,17 +59,21 @@ rf_n_plot <- ggplot(op_df,
               linetype = "twodash", color = "black") +
   ggthemes::theme_few(base_family = "Helvetica") + 
   coord_fixed(ratio = 1) +
-  jcolors::scale_color_jcolors(palette = "pal3") +
+  jcolors::scale_color_jcolors(palette = "pal3", 
+                               name = "",
+                               labels = c("Rhön", "WIZ")) +
   labs(x="Predicted", 
        y="Observed",
+       title = "RFR",
        caption=paste("R² = ", round(post_resample_rf_n[2], 2), ",   ",
                      "rRMSEP = ", round(post_resample_rf_n[1]/mean_n, 2)*100, 
-                     " %", "\n", "RFR", sep = "")) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=13),
-        legend.title = element_text(size=12, face="bold"),
+                     " %", sep = "")) +
+  theme(axis.text = element_text(size=13),
+        axis.title = element_text(size=14),
+        legend.title = element_text(size=13, face="bold"),
         legend.text = element_text(size=11),
-        plot.caption=element_text(size=11, face="italic", hjust=1),
+        plot.caption = element_text(size=13, face="italic", hjust=1),
+        plot.title = element_text(size=15, face="bold"),
         legend.position = "top")
 
 gp_n_plot <- ggplot(op_df, 
@@ -76,17 +84,21 @@ gp_n_plot <- ggplot(op_df,
               linetype = "twodash", color = "black") +
   ggthemes::theme_few(base_family = "Helvetica") + 
   coord_fixed(ratio = 1) +
-  jcolors::scale_color_jcolors(palette = "pal3") +
+  jcolors::scale_color_jcolors(palette = "pal3", 
+                               name = "",
+                               labels = c("Rhön", "WIZ")) +
   labs(x="Predicted", 
        y="Observed",
+       title = "GPR",
        caption=paste("R² = ", round(post_resample_gp_n[2], 2), ",   ",
                      "rRMSEP = ", round(post_resample_gp_n[1]/mean_n, 2)*100, 
-                     " %", "\n", "GPR", sep = "")) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=13),
-        legend.title = element_text(size=12, face="bold"),
+                     " %", sep = "")) +
+  theme(axis.text = element_text(size=13),
+        axis.title = element_text(size=14),
+        legend.title = element_text(size=13, face="bold"),
         legend.text = element_text(size=11),
-        plot.caption=element_text(size=11, face="italic", hjust=1),
+        plot.caption = element_text(size=13, face="italic", hjust=1),
+        plot.title = element_text(size=15, face="bold"),
         legend.position = "top")
 
 svm_n_plot <- ggplot(op_df, 
@@ -97,21 +109,34 @@ svm_n_plot <- ggplot(op_df,
               linetype = "twodash", color = "black") +
   ggthemes::theme_few(base_family = "Helvetica") + 
   coord_fixed(ratio = 1) +
-  jcolors::scale_color_jcolors(palette = "pal3") +
+  jcolors::scale_color_jcolors(palette = "pal3", 
+                               name = "",
+                               labels = c("Rhön", "WIZ")) +
   labs(x="Predicted", 
        y="Observed",
+       title = "SVMR",
        caption=paste("R² = ", round(post_resample_svm_n[2], 2), ",   ",
                      "rRMSEP = ", round(post_resample_svm_n[1]/mean_n, 2)*100, 
-                     " %", "\n", "SVMR", sep = "")) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=13),
-        legend.title = element_text(size=12, face="bold"),
+                     " %", sep = "")) +
+  theme(axis.text = element_text(size=13),
+        axis.title = element_text(size=14),
+        legend.title = element_text(size=13, face="bold"),
         legend.text = element_text(size=11),
-        plot.caption=element_text(size=11, face="italic", hjust=1),
+        plot.caption = element_text(size=13, face="italic", hjust=1),
+        plot.title = element_text(size=15, face="bold"),
         legend.position = "top")
 
-cowplot::plot_grid(pls_n_plot, rf_n_plot, gp_n_plot, svm_n_plot, 
-                   nrow = 2, ncol = 2)
+n_plots <- cowplot::plot_grid(pls_n_plot, rf_n_plot, gp_n_plot, svm_n_plot, 
+                   nrow = 2, ncol = 2, align="hv")
+ggpubr::annotate_figure(n_plots,
+                        top = ggpubr::text_grob("N (%DM) Estimation (Model Testing)", 
+                                                family="Helvetica", face = "bold", size = 17))
+png(filename="./plots/n_model_validation.png", type="cairo",
+    width = 3300, height = 3300, res = 300)
+ggpubr::annotate_figure(n_plots,
+                        top = ggpubr::text_grob("N (%DM) Estimation (Model Testing)", 
+                                                family="Helvetica", face = "bold", size = 16))
+dev.off()
 
 ### OP plot for ADF
 pls_adf_plot <- ggplot(op_df, 
@@ -122,17 +147,21 @@ pls_adf_plot <- ggplot(op_df,
               linetype = "twodash", color = "black") +
   ggthemes::theme_few(base_family = "Helvetica") + 
   coord_fixed(ratio = 1) +
-  jcolors::scale_color_jcolors(palette = "pal3") +
+  jcolors::scale_color_jcolors(palette = "pal3", 
+                               name = "",
+                               labels = c("Rhön", "WIZ")) +
   labs(x="Predicted", 
        y="Observed",
+       title = "PLSR",
        caption=paste("R² = ", round(post_resample_pls_adf[2], 2), ",   ",
                      "rRMSEP = ", round(post_resample_pls_adf[1]/mean_adf, 2)*100, 
-                     " %", "\n", "PLSR", sep = "")) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=13),
-        legend.title = element_text(size=12, face="bold"),
+                     " %", sep = "")) +
+  theme(axis.text = element_text(size=13),
+        axis.title = element_text(size=14),
+        legend.title = element_text(size=13, face="bold"),
         legend.text = element_text(size=11),
-        plot.caption=element_text(size=11, face="italic", hjust=1),
+        plot.caption = element_text(size=13, face="italic", hjust=1),
+        plot.title = element_text(size=15, face="bold"),
         legend.position = "top")
 
 rf_adf_plot <- ggplot(op_df, 
@@ -143,17 +172,21 @@ rf_adf_plot <- ggplot(op_df,
               linetype = "twodash", color = "black") +
   ggthemes::theme_few(base_family = "Helvetica") + 
   coord_fixed(ratio = 1) +
-  jcolors::scale_color_jcolors(palette = "pal3") +
+  jcolors::scale_color_jcolors(palette = "pal3", 
+                               name = "",
+                               labels = c("Rhön", "WIZ")) +
   labs(x="Predicted", 
        y="Observed",
+       title = "RFR",
        caption=paste("R² = ", round(post_resample_rf_adf[2], 2), ",   ",
                      "rRMSEP = ", round(post_resample_rf_adf[1]/mean_adf, 2)*100, 
-                     " %", "\n", "RFR", sep = "")) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=13),
-        legend.title = element_text(size=12, face="bold"),
+                     " %", sep = "")) +
+  theme(axis.text = element_text(size=13),
+        axis.title = element_text(size=14),
+        legend.title = element_text(size=13, face="bold"),
         legend.text = element_text(size=11),
-        plot.caption=element_text(size=11, face="italic", hjust=1),
+        plot.caption = element_text(size=13, face="italic", hjust=1),
+        plot.title = element_text(size=15, face="bold"),
         legend.position = "top")
 
 gp_adf_plot <- ggplot(op_df, 
@@ -164,17 +197,21 @@ gp_adf_plot <- ggplot(op_df,
               linetype = "twodash", color = "black") +
   ggthemes::theme_few(base_family = "Helvetica") + 
   coord_fixed(ratio = 1) +
-  jcolors::scale_color_jcolors(palette = "pal3") +
+  jcolors::scale_color_jcolors(palette = "pal3", 
+                               name = "",
+                               labels = c("Rhön", "WIZ")) +
   labs(x="Predicted", 
        y="Observed",
+       title = "GPR",
        caption=paste("R² = ", round(post_resample_gp_adf[2], 2), ",   ",
                      "rRMSEP = ", round(post_resample_gp_adf[1]/mean_adf, 2)*100, 
-                     " %", "\n", "GPR", sep = "")) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=13),
-        legend.title = element_text(size=12, face="bold"),
+                     " %", sep = "")) +
+  theme(axis.text = element_text(size=13),
+        axis.title = element_text(size=14),
+        legend.title = element_text(size=13, face="bold"),
         legend.text = element_text(size=11),
-        plot.caption=element_text(size=11, face="italic", hjust=1),
+        plot.caption = element_text(size=13, face="italic", hjust=1),
+        plot.title = element_text(size=15, face="bold"),
         legend.position = "top")
 
 svm_adf_plot <- ggplot(op_df, 
@@ -185,45 +222,66 @@ svm_adf_plot <- ggplot(op_df,
               linetype = "twodash", color = "black") +
   ggthemes::theme_few(base_family = "Helvetica") + 
   coord_fixed(ratio = 1) +
-  jcolors::scale_color_jcolors(palette = "pal3") +
+  jcolors::scale_color_jcolors(palette = "pal3", 
+                               name = "",
+                               labels = c("Rhön", "WIZ")) +
   labs(x="Predicted", 
        y="Observed",
+       title = "SVMR",
        caption=paste("R² = ", round(post_resample_svm_adf[2], 2), ",   ",
                      "rRMSEP = ", round(post_resample_svm_adf[1]/mean_adf, 2)*100, 
-                     " %", "\n", "SVMR", sep = "")) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=13),
-        legend.title = element_text(size=12, face="bold"),
+                     " %", sep = "")) +
+  theme(axis.text = element_text(size=13),
+        axis.title = element_text(size=14),
+        legend.title = element_text(size=13, face="bold"),
         legend.text = element_text(size=11),
-        plot.caption=element_text(size=11, face="italic", hjust=1),
+        plot.caption = element_text(size=13, face="italic", hjust=1),
+        plot.title = element_text(size=15, face="bold"),
         legend.position = "top")
 
-cowplot::plot_grid(pls_adf_plot, rf_adf_plot, gp_adf_plot, svm_adf_plot, 
+adf_plots <- cowplot::plot_grid(pls_adf_plot, rf_adf_plot, gp_adf_plot, svm_adf_plot, 
                    nrow = 2, ncol = 2)
 
+
+ggpubr::annotate_figure(adf_plots,
+                        top = ggpubr::text_grob("ADF (%DM) Estimation (Model Testing)", 
+                                                family="Helvetica", face = "bold", size = 17))
+
+png(filename="./plots/adf_model_validation.png", type="cairo",
+    width = 3300, height = 3300, res = 300)
+ggpubr::annotate_figure(adf_plots,
+                        top = ggpubr::text_grob("ADF (%DM) Estimation (Model Testing)", 
+                                                family="Helvetica", face = "bold", size = 17))
+dev.off()
 # Taylor diagram
 
 library(plotrix)
 
-oldpar <- taylor.diagram(op_df$n, op_df$n, pch = 19, main = "N (%DM) estimation")
-taylor.diagram(op_df$n, op_df$pls_n_pred, add = TRUE, col="#9449d2", pch = 19)
-taylor.diagram(op_df$n, op_df$rf_n_pred, add = TRUE, col="#B1740F", pch = 19)
-taylor.diagram(op_df$n, op_df$gp_n_pred, add = TRUE, col="blue", pch = 19)
-taylor.diagram(op_df$n, op_df$svm_n_pred, add = TRUE, col="#08585A", pch = 19)
+png(filename="./plots/n_model_taylor.png", type="cairo",
+    width = 1100, height = 1100, res = 100)
+oldpar <- taylor.diagram(op_df$n, op_df$n, pch = 19, main = "N (%DM) estimation", pcex = 2)
+taylor.diagram(op_df$n, op_df$pls_n_pred, add = TRUE, col="#9449d2", pch = 19, pcex = 2)
+taylor.diagram(op_df$n, op_df$rf_n_pred, add = TRUE, col="#B1740F", pch = 19, pcex = 2)
+taylor.diagram(op_df$n, op_df$gp_n_pred, add = TRUE, col="blue", pch = 19, pcex = 2)
+taylor.diagram(op_df$n, op_df$svm_n_pred, add = TRUE, col="#08585A", pch = 19, pcex = 2)
 lpos <- 1.5*sd(op_df$n)
-legend(0.9, 1.3, legend=c("Observed","PLSR","RFR","GPR","SVMR"),
-       pch = 19, col = c("red", "#9449d2", "#B1740F", "blue", "#08585A"))
+legend(0.85, 1.0, legend=c("Observed","PLSR","RFR","GPR","SVMR"),
+       pch = 19, cex = 1.5, col = c("red", "#9449d2", "#B1740F", "blue", "#08585A"))
 par(oldpar)
+dev.off()
 
-oldpar <- taylor.diagram(op_df$adf, op_df$adf, pch = 19, main = "ADF (%DM) estimation")
-taylor.diagram(op_df$adf, op_df$pls_adf_pred, add = TRUE, col="#9449d2", pch = 19)
-taylor.diagram(op_df$adf, op_df$rf_adf_pred, add = TRUE, col="#B1740F", pch = 19)
-taylor.diagram(op_df$adf, op_df$gp_adf_pred, add = TRUE, col="blue", pch = 19)
-taylor.diagram(op_df$adf, op_df$svm_adf_pred, add = TRUE, col="#08585A", pch = 19)
+png(filename="./plots/adf_model_taylor.png", type="cairo",
+    width = 1100, height = 1100, res = 100)
+oldpar <- taylor.diagram(op_df$adf, op_df$adf, pch = 19, main = "ADF (%DM) estimation", pcex = 2)
+taylor.diagram(op_df$adf, op_df$pls_adf_pred, add = TRUE, col="#9449d2", pch = 19, pcex = 2)
+taylor.diagram(op_df$adf, op_df$rf_adf_pred, add = TRUE, col="#B1740F", pch = 19, pcex = 2)
+taylor.diagram(op_df$adf, op_df$gp_adf_pred, add = TRUE, col="blue", pch = 19, pcex = 2)
+taylor.diagram(op_df$adf, op_df$svm_adf_pred, add = TRUE, col="#08585A", pch = 19, pcex = 2)
 lpos <- 1.5*sd(op_df$adf)
-legend(5.7, 7.3, legend=c("Observed","PLSR","RFR","GPR","SVMR"),
-       pch = 19, col = c("red", "#9449d2", "#B1740F", "blue", "#08585A"))
+legend(5.2, 5.3, legend=c("Observed","PLSR","RFR","GPR","SVMR"),
+       pch = 19, cex = 1.5, col = c("red", "#9449d2", "#B1740F", "blue", "#08585A"))
 par(oldpar)
+dev.off()
 
 
 ## Residual check
@@ -257,7 +315,7 @@ res_vs_fid_n <- ggplot(data = op_df %>%
   jcolors::scale_fill_jcolors("pal7",
                               name = "Model", 
                               labels = c("PLSR", "RFR", "GPR", "SVMR")) +
-  labs(y = "Residuals",
+  labs(y = "Residuals  - N (%DM)",
        x = "Model",
        caption = "Residuals for N (%DM) estimation") +
   scale_x_discrete(labels = c("pls_n_delta" = "PLSR", "rf_n_delta" = "RFR",
@@ -280,7 +338,7 @@ res_vs_fid_adf <- ggplot(data = op_df %>%
   jcolors::scale_fill_jcolors("pal7",
                               name = "Model", 
                               labels = c("PLSR", "RFR", "GPR", "SVMR")) +
-  labs(y = "Residuals",
+  labs(y = "Residuals - ADF (%DM)",
        x = "Model",
        caption = "Residuals for ADF (%DM) estimation") +
   scale_x_discrete(labels = c("pls_adf_delta" = "PLSR", "rf_adf_delta" = "RFR",
@@ -294,3 +352,8 @@ res_vs_fid_adf <- ggplot(data = op_df %>%
   )
 
 cowplot::plot_grid(res_vs_fid_n, res_vs_fid_adf, nrow = 2, ncol = 1)
+
+png(filename="./plots/model_residual_n_adf.png", type="cairo",
+    width = 6600, height = 3300, res = 400)
+cowplot::plot_grid(res_vs_fid_n, res_vs_fid_adf, nrow = 2, ncol = 1)
+dev.off()

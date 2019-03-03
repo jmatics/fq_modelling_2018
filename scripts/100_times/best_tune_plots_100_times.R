@@ -12,10 +12,10 @@ pls_plot <- ggplot(data = pls_best_tune_df, aes(x = model, y = comp, fill = mode
   labs(y = "No. of components",
        x = "Model variable",
        title = "PLSR",
-       caption = "Best tune parameter (No. of components) for PLSR models") +
+       caption = "Best tune parameter = No. of components (ncomp") +
   scale_fill_manual(values = c("#42858C", "#E48F1B"),
-                    name = "Forage quality parameter", 
-                    labels = c("ADF (%DM)", "Nitrogen (%DM)")) +
+                    name = "", 
+                    labels = c("ADF (%DM)", "N (%DM)")) +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -29,10 +29,10 @@ rf_plot <- ggplot(data = rf_best_tune_df, aes(x = model, y = comp, fill = model)
   labs(y = "Mtry",
        x = "Model variable",
        title = "RFR",
-       caption = "Best tune parameter (Mtry) for RFR models") +
+       caption = "Best tune parameter = Mtry") +
   scale_fill_manual(values = c("#42858C", "#E48F1B"),
-                    name = "Forage quality parameter", 
-                    labels = c("ADF (%DM)", "Nitrogen (%DM)")) +
+                    name = "", 
+                    labels = c("ADF (%DM)", "N (%DM)")) +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -46,10 +46,10 @@ gp_plot <- ggplot(data = gp_best_tune_df, aes(x = model, y = comp, fill = model)
   labs(y = "Sigma",
        x = "Model variable",
        title = "GPR",
-       caption = "Best tune parameter (Sigma) for GPR models") +
+       caption = "Best tune parameter = Sigma (s)") +
   scale_fill_manual(values = c("#42858C", "#E48F1B"),
-                    name = "Forage quality parameter", 
-                    labels = c("ADF (%DM)", "Nitrogen (%DM)")) +
+                    name = "", 
+                    labels = c("ADF (%DM)", "N (%DM)")) +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -63,10 +63,10 @@ sigma_plot <- ggplot(data = svm_best_tune_df, aes(x = model, y = comp_sigma, fil
   labs(y = "Sigma",
        x = "Model variable",
        title = "SVMR",
-       caption = "Best tune parameter (Sigma) for SVMR models") +
+       caption = "Best tune parameter = Sigma (s)") +
   scale_fill_manual(values = c("#42858C", "#E48F1B"),
-                    name = "Forage quality parameter", 
-                    labels = c("ADF (%DM)", "Nitrogen (%DM)")) +
+                    name = "", 
+                    labels = c("ADF (%DM)", "N (%DM)")) +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -80,10 +80,10 @@ cost_plot <- ggplot(data = svm_best_tune_df, aes(x = model, y = comp_cost, fill 
   labs(y = "Cost",
        x = "Model variable",
        title = "SVMR",
-       caption = "Best tune parameter (Cost) for SVMR models") +
+       caption = "Best tune parameter = Cost (C)") +
   scale_fill_manual(values = c("#42858C", "#E48F1B"),
-                    name = "Forage quality parameter", 
-                    labels = c("ADF (%DM)", "Nitrogen (%DM)")) +
+                    name = "", 
+                    labels = c("ADF (%DM)", "N (%DM)")) +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 14),
@@ -94,3 +94,8 @@ cost_plot <- ggplot(data = svm_best_tune_df, aes(x = model, y = comp_cost, fill 
 svm_plot <- cowplot::plot_grid(sigma_plot, cost_plot, nrow = 1, ncol = 2)
 
 cowplot::plot_grid(pls_plot, rf_plot, gp_plot, svm_plot, nrow = 2, ncol = 2)
+
+png(filename="./plots/best_tune_median.png", type="cairo",
+    width = 6600, height = 5500, res = 600)
+cowplot::plot_grid(pls_plot, rf_plot, gp_plot, svm_plot, nrow = 2, ncol = 2)
+dev.off()
