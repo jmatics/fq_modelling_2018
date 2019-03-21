@@ -9,9 +9,10 @@ obs_pred_plot <- function(model, df, estimators, target, plot = TRUE, title = FA
                       "fp_id" = df$fp_id,
                       "source" = df$source,
                       "Observed" = df[, target],
-                      "Predicted" = predict(model , df[, estimators]),
-                      "Residuals" = df[, target] - predict(model , df[, estimators]))
+                      "Predicted" = predict(model , df[, estimators]) %>% data.frame() %>% pull(1),
+                      "Residuals" = df[, target] - predict(model , df[, estimators]) %>% data.frame() %>% pull(1))
   valid_out <- postResample(op_df$Predicted, op_df$Observed)
+  xlimits <- c(min(op_df$Predicted), max(op_df$Predicted))
     opPlot <- ggplot(op_df, 
                      aes(x=Predicted, y=Observed)) +
       geom_point(size = 2, alpha  = 0.8, aes(col=source))  + 
@@ -19,7 +20,7 @@ obs_pred_plot <- function(model, df, estimators, target, plot = TRUE, title = FA
       geom_abline(mapping = NULL, data = NULL, slope = 1, intercept = 0, 
                   linetype = "twodash", color = "black") +
       ggthemes::theme_few(base_family = "Helvetica") + 
-      coord_fixed(ratio = 1) +
+      coord_fixed(ratio = 1, expand = TRUE, xlim = xlimits, ylim = xlimits) +
       jcolors::scale_color_jcolors(palette = "pal3", name = "Location") +
       labs(x="Predicted", 
            y="Observed",

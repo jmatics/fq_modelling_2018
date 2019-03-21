@@ -101,12 +101,16 @@ test_df <- split_sample %>% dplyr::filter(.partitions == 2)
 table(test_df$field_id)
 
 ## Coulmn index for estimators (independent variables)
-estimators <- c(5:122)
+load("./output/models/svmr_n_profile.RData")
+#estimators <- c(5:122)
+estimators_n <- predictors(svmr_n_profile)
+
+load("./output/models/svmr_adf_profile.RData")
+estimators_adf <- predictors(svmr_adf_profile)
 
 ## Coulmn index for each targets (dependent variables)
-targetN <- 131
-targetADF <- 134
-
+targetN <- "n"
+targetADF <- "adf"
 
 # 3. Model calibration (training)
 
@@ -128,16 +132,16 @@ set.seed(777)
 
 ## 3.1 SVMR
 metric <- "RMSE"
-tunegrid <- expand.grid(sigma = seq(0.01, 0.05, 0.005), 
-                                   C = seq(2, 10, 1))
+tunegrid <- expand.grid(sigma = seq(0.005, 0.10, 0.005), 
+                        C = seq(2, 21, 2))
 
 ### SVM for N
-svm_all_n <- train(n ~., data = train_df[, c(targetN, estimators)], 
-                  method = "svmRadial", metric = metric, 
-                  tuneGrid = tunegrid, 
-                  trControl = myControl, 
-                  preProcess = c("center", "scale"),
-                  importance = T)
+svm_all_n <- train(n ~., data = train_df[, c(targetN, estimators_n)], 
+                   method = "svmRadial", metric = metric, 
+                   tuneGrid = tunegrid, 
+                   trControl = myControl, 
+                   preProcess = c("center", "scale"),
+                   importance = T)
 stopCluster(cls)
 tictoc::toc()
 svm_all_n
@@ -147,19 +151,20 @@ plot(svm_all_n)
 tictoc::tic("svm_all_adf")
 cls = makeCluster(detectCores()-1)
 registerDoParallel(cls)
-svm_all_adf <- train(adf ~., data = train_df[, c(targetADF, estimators)], 
-                    method = "svmRadial", metric = metric, 
-                    tuneGrid = tunegrid, 
-                    trControl=myControl, 
-                    preProcess = c("center", "scale"),
-                    importance = T)
+svm_all_adf <- train(adf ~., data = train_df[, c(targetADF, estimators_adf)], 
+                     method = "svmRadial", metric = metric, 
+                     tuneGrid = tunegrid, 
+                     trControl=myControl, 
+                     preProcess = c("center", "scale"),
+                     importance = T)
 stopCluster(cls)
 tictoc::toc()
 svm_all_adf
 plot(svm_all_adf)
 
-save(svm_all_n, svm_all_adf, file = "./output/models/svmr_model_for_N_ADF.RData")
+save(svm_all_n, svm_all_adf, file = "./output/models/svmr_rfe_model_for_N_ADF.RData")
 timestamp()
+
 ### Visulaise calibrated models
 
 plot(varImp(svm_all_n), 10, main = "N_SVMR")
@@ -167,7 +172,7 @@ plot(varImp(svm_all_adf), 10, main = "ADF_SVMR")
 
 
 svm_all_compare <- resamples(list("N_SVMR" = svm_all_n,
-                                 "ADF_SVMR" = svm_all_adf))
+                                  "ADF_SVMR" = svm_all_adf))
 summary(svm_all_compare)
 
 
@@ -180,15 +185,10 @@ dotplot(svm_all_compare, scales=list(tck=c(1,0), x=list(cex=1.5), y=list(cex=1.5
 source("./funs/obs_pred_plot.R")
 
 obs_pred_plot(svm_all_n, test_df, 
-              estimators, targetN, plot = TRUE, 
-              title = "N (%) estimation model with SVMR")
+              estimators_n, targetN, plot = TRUE, 
+              title = "N (%DM) estimation model with SVMR - RFE")
 
 
 obs_pred_plot(svm_all_adf, test_df, 
-              estimators, targetADF, plot = TRUE, 
-              title = "ADF (%) estimation model with SVMR")
-# densityplot(svm_all_n, comps = 1:3)
-#  scoreplot(svm_all_adf$finalModel, comps = 1:3)  
-#  loadingplot(svm_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
-#  corrplot(svm_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
-#  coefplot(svm_all_n$finalModel, comps = 1:3, legendpos = "bottomright")
+              estimators_adf, targetADF, plot = TRUE, 
+              title = "ADF (%DM) estimation model with SVMR - RFE")
